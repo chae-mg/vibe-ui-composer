@@ -56,4 +56,4 @@ AI UI 생성, Prompt-to-UI, 협업, 로그인, 서버 데이터베이스 연결�
 
 ## 현재 상태
 
-Phase 0 Puck Editor PoC를 `apps/puck-poc`에 추가했습니다. Component Registry, Drag & Drop, Properties Panel, viewport 전환, localStorage JSON 저장 흐름을 확인할 수 있습니다. 실행 방법은 [PoC README](./apps/puck-poc/README.md)를 참고하세요.
+Phase 1 Editor Shell까지 구현했습니다. `apps/puck-poc`에서 Puck 기반 Top Bar, Left Component Panel, Canvas, Outline Structure Panel, Right Properties Panel과 Mobile/Tablet/Desktop viewport를 확인할 수 있습니다. 실행 방법은 [PoC README](./apps/puck-poc/README.md)를 참고하세요. 다음 단계는 Phase 2 Project JSON Schema & Renderer입니다.
