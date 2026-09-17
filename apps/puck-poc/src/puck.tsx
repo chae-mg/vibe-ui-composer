@@ -129,6 +129,7 @@ export function Puck() {
       <PuckEditor
         config={config}
         data={initialData}
+        ui={{ leftSideBarVisible: true, rightSideBarVisible: true }}
         onChange={persist}
         onPublish={persist}
         headerTitle="UI Composer PoC"
