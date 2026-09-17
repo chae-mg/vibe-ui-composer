@@ -1,7 +1,7 @@
 # Phase 1 Result
 
 Date: 2026-09-17
-Status: PASS
+Status: PARTIAL
 
 ## Implemented
 
@@ -20,6 +20,8 @@ Status: PASS
 - Passed: TypeScript `tsc --noEmit`
 - Passed: Vite production build
 - Passed: GitHub 저장소의 `apps/puck-poc` 및 `src` 파일 확인
+- Passed: GitHub Actions build job
+- Pending: GitHub Pages deploy job (Pages 설정이 비활성화되어 404)
 
 ## Known Issues
 
@@ -32,7 +34,7 @@ Status: PASS
 - Grid / Resize
 - IndexedDB 저장
 - Theme / Token
-- GitHub Pages 실제 배포 자동화
+- GitHub Pages 설정 활성화 후 workflow 재실행
 
 ## Technical Decisions
 
