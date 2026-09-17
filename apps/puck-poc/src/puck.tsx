@@ -6,7 +6,7 @@ const STORAGE_KEY = "ui-composer-puck-poc";
 type HeadingProps = { text: string; level: "h1" | "h2" | "h3" };
 type TextProps = { text: string };
 type ButtonProps = { label: string; variant: "primary" | "secondary" };
-type SectionProps = { title: string; tone: "surface" | "accent"; children?: React.ReactNode };
+type SectionProps = { title: string; tone: "surface" | "accent" };
 
 const config: Config = {
   components: {
@@ -69,10 +69,9 @@ const config: Config = {
         }
       },
       defaultProps: { title: "Section", tone: "surface" },
-      render: ({ title, tone, children }: SectionProps) => (
+      render: ({ title, tone }: SectionProps) => (
         <section className={"poc-section poc-section--" + tone}>
           <h2>{title}</h2>
-          {children}
         </section>
       )
     }
@@ -128,9 +127,9 @@ export function Puck() {
         headerTitle="UI Composer PoC"
         headerPath="/apps/puck-poc"
         viewports={[
-          { width: 390, height: "auto", title: "Mobile" },
-          { width: 768, height: "auto", title: "Tablet" },
-          { width: 1440, height: "auto", title: "Desktop" }
+          { width: 390, height: "auto", label: "Mobile" },
+          { width: 768, height: "auto", label: "Tablet" },
+          { width: 1440, height: "auto", label: "Desktop" }
         ]}
       />
     </div>
