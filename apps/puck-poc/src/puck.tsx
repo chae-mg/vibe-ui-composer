@@ -8,7 +8,14 @@ type TextProps = { text: string };
 type ButtonProps = { label: string; variant: "primary" | "secondary" };
 type SectionProps = { title: string; tone: "surface" | "accent" };
 
-const config: Config = {
+type Components = {
+  HeadingBlock: HeadingProps;
+  TextBlock: TextProps;
+  ButtonBlock: ButtonProps;
+  SectionBlock: SectionProps;
+};
+
+const config: Config<Components> = {
   components: {
     HeadingBlock: {
       label: "Heading",
