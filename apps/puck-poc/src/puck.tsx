@@ -123,7 +123,7 @@ export function Puck() {
   return (
     <div className="poc-shell">
       <div className="poc-status" aria-live="polite">
-        <span>Phase 0 · Puck validation</span>
+        <span>Phase 1 · Editor shell</span>
         <span>{savedAt ? "Saved " + savedAt : "Local JSON storage ready"}</span>
       </div>
       <PuckEditor
