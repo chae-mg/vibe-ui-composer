@@ -56,4 +56,4 @@ AI UI 생성, Prompt-to-UI, 협업, 로그인, 서버 데이터베이스 연결�
 
 ## 현재 상태
 
-기획 및 Phase별 구현 계획 정리 단계입니다. 다음 작업은 Phase 0에서 Puck 기반 Editor PoC를 검증하는 것입니다.
+Phase 0 Puck Editor PoC를 `apps/puck-poc`에 추가했습니다. Component Registry, Drag & Drop, Properties Panel, viewport 전환, localStorage JSON 저장 흐름을 확인할 수 있습니다. 실행 방법은 [PoC README](./apps/puck-poc/README.md)를 참고하세요.
