@@ -314,9 +314,7 @@ export function Puck() {
     setSavedAt(new Date().toLocaleTimeString("ko-KR"));
   };
 
-  const validationPassed = Object.values(validation)
-    .filter((value) => typeof value === "boolean")
-    .every(Boolean);
+  const validationPassed = validation.schemaVersion && validation.validProject;
 
   return (
     <div className="poc-shell">

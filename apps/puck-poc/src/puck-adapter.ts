@@ -184,6 +184,7 @@ export function validateProjectRoundTrip(project: ProjectDocument) {
 
   return {
     schemaVersion: roundTrip.schemaVersion === PROJECT_SCHEMA_VERSION,
+    validProject: Boolean(roundTrip.rootId && roundTrip.nodes[roundTrip.rootId]),
     nestedNodes: Boolean(root?.children.length && nestedNodeCount >= 4),
     gridSpan: gridNode?.layout.gridSpan === 12 && cardNode?.layout.gridSpan === 6,
     responsive: typeof cardNode?.responsive.mobile?.gridSpan === "number",
