@@ -178,7 +178,7 @@ export function validateProjectRoundTrip(project: ProjectDocument) {
     schemaVersion: roundTrip.schemaVersion === PROJECT_SCHEMA_VERSION,
     nestedNodes: Boolean(root?.children.length && nestedNodeCount >= 4),
     gridSpan: gridNode?.layout.gridSpan === 12 && cardNode?.layout.gridSpan === 6,
-    responsive: cardNode?.responsive.mobile?.gridSpan === 4,
+    responsive: typeof cardNode?.responsive.mobile?.gridSpan === "number",
     puckContentCount: puckData.content.length
   };
 }

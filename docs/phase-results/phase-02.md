@@ -11,6 +11,7 @@ Status: PASS
 - `ProjectRenderer`를 추가해 Puck 없이 Project JSON만으로 Page, Section, Container, Flex, Grid, Card, Text, Button, Input을 렌더링한다.
 - Desktop / Tablet / Mobile Grid와 Node별 Responsive span을 Renderer에 적용했다.
 - 알 수 없는 Node Type과 순환 참조를 crash 없이 placeholder로 표시한다.
+- Phase 0에서 저장된 localStorage Puck Data도 Project JSON v1로 읽을 수 있게 호환 경로를 추가했다.
 - `SCHEMA_SPEC.md`에 저장 포맷과 Renderer 경계를 기록했다.
 - Editor 상단에서 독립 Schema Renderer를 열어 Puck 결과와 비교할 수 있게 했다.
 

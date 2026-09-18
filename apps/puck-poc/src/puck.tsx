@@ -196,27 +196,40 @@ const config: Config<Components> = {
 
 const defaultData: Data = projectToPuckData(createDefaultProject());
 
-function loadData(): Data {
+type StoredState = {
+  puckData: Data;
+  project?: ProjectDocument;
+};
+
+function loadStoredState(): StoredState {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (!saved) {
-      return defaultData;
+      return { puckData: defaultData };
     }
 
-    const parsed = JSON.parse(saved) as Data | { puckData?: Data };
-    return "puckData" in parsed && parsed.puckData ? parsed.puckData : (parsed as Data);
+    const parsed = JSON.parse(saved) as Data | StoredState;
+    if ("puckData" in parsed && parsed.puckData) {
+      return { puckData: parsed.puckData, project: parsed.project };
+    }
+    return { puckData: parsed as Data };
   } catch {
-    return defaultData;
+    return { puckData: defaultData };
   }
 }
 
 export function Puck() {
   const [savedAt, setSavedAt] = useState<string | null>(null);
   const [showSchemaRenderer, setShowSchemaRenderer] = useState(false);
-  const initialData = useMemo(loadData, []);
+  const storedState = useMemo(loadStoredState, []);
+  const initialData = storedState.puckData;
   const initialProject = useMemo<ProjectDocument>(
-    () => puckDataToProject(initialData),
-    [initialData]
+    () => puckDataToProject(
+      initialData,
+      storedState.project?.name ?? "Vibe Coding UI Composer",
+      storedState.project
+    ),
+    [initialData, storedState.project]
   );
   const [currentProject, setCurrentProject] = useState(initialProject);
   const validation = useMemo(
