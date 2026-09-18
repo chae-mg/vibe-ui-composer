@@ -56,4 +56,4 @@ AI UI 생성, Prompt-to-UI, 협업, 로그인, 서버 데이터베이스 연결�
 
 ## 현재 상태
 
-Phase 1 Editor Shell까지 구현했습니다. `apps/puck-poc`에서 Puck 기반 Top Bar, Left Component Panel, Canvas, Outline Structure Panel, Right Properties Panel과 Mobile/Tablet/Desktop viewport를 확인할 수 있습니다. GitHub Pages 배포 workflow도 추가했으며, 저장소 Pages 설정을 활성화하면 자동 배포됩니다. 실행 방법은 [PoC README](./apps/puck-poc/README.md)를 참고하세요. 다음 단계는 Phase 2 Project JSON Schema & Renderer입니다.
+Phase 0 기술 검증과 Phase 1 Editor Shell을 진행 중입니다. `apps/puck-poc`에서 `Page → Section → Grid → Card` 중첩 구조, 앱 소유 Project Schema Adapter, Grid Overlay, Responsive Span, Top Bar, 좌우 패널과 viewport를 확인할 수 있습니다. GitHub Pages 배포 workflow도 추가했으며, 저장소 Pages 설정을 활성화하면 자동 배포됩니다. 실행 방법은 [PoC README](./apps/puck-poc/README.md)를 참고하세요. 다음 구현 단계는 Phase 2 Project JSON Schema & Renderer입니다.
