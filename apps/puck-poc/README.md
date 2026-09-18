@@ -5,10 +5,14 @@ Phase 0 검증을 위한 최소 Puck 앱입니다.
 ## 검증 범위
 
 - Puck Component Registry
+- Page > Section > Grid > Card 중첩 슬롯
 - Component Drag & Drop
 - 선택 및 Properties Panel 편집
+- 12-column Grid Overlay와 Card span
+- Desktop / Tablet / Mobile span 값 저장 및 CSS 적용
+- Puck Data ↔ 앱 소유 Project Schema Adapter
 - onChange / onPublish 데이터 흐름
-- 브라우저 localStorage 기반 임시 JSON 저장
+- 브라우저 localStorage 기반 Puck Data + Project JSON 저장
 - Mobile / Tablet / Desktop viewport
 
 ## 실행
