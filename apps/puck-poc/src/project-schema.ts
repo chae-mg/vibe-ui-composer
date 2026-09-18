@@ -137,7 +137,7 @@ export function puckDataToProject(data: Data, name = "Puck PoC Project"): Projec
   };
 }
 
-function nodeToPuck(node: ProjectNode): PuckComponentData {
+function nodeToPuck(node: ProjectNode, nodes: Record<string, ProjectNode>): PuckComponentData {
   const type = PROJECT_TO_PUCK_TYPE[node.type] ?? node.type;
   const props: Record<string, unknown> = {
     ...node.props,
@@ -151,7 +151,10 @@ function nodeToPuck(node: ProjectNode): PuckComponentData {
   }
 
   if (node.children.length > 0) {
-    props.content = node.children.map((childId) => nodeToPuck(childId as unknown as ProjectNode));
+    props.content = node.children
+      .map((childId) => nodes[childId])
+      .filter((child): child is ProjectNode => Boolean(child))
+      .map((child) => nodeToPuck(child, nodes));
   }
 
   return { type, props };
@@ -166,7 +169,7 @@ export function projectToPuckData(project: ProjectDocument): Data {
   const content = root.children
     .map((childId) => project.nodes[childId])
     .filter((node): node is ProjectNode => Boolean(node))
-    .map(nodeToPuck);
+    .map((node) => nodeToPuck(node, project.nodes));
 
   return {
     content,
