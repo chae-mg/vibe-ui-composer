@@ -226,7 +226,7 @@ const config: Config<Components> = {
       label: getComponentDefinition("Select")?.label ?? "Select",
       fields: { label: { type: "text" }, options: { type: "textarea" } },
       defaultProps: registryProps("Select") as SelectProps,
-      render: ({ label, options }: SelectProps) => <label className="poc-field"><span>{label}</span><select className="poc-input">{options.split("\\n").filter(Boolean).map((option) => <option key={option}>{option}</option>)}</select></label>
+      render: ({ label, options }: SelectProps) => <label className="poc-field"><span>{label}</span><select className="poc-input">{options.split("\n").filter(Boolean).map((option) => <option key={option}>{option}</option>)}</select></label>
     },
     BadgeBlock: {
       label: getComponentDefinition("Badge")?.label ?? "Badge",
@@ -247,7 +247,7 @@ const config: Config<Components> = {
       label: getComponentDefinition("Table")?.label ?? "Table",
       fields: { title: { type: "text" }, columns: { type: "textarea" } },
       defaultProps: registryProps("Table") as TableProps,
-      render: ({ title, columns }: TableProps) => <div className="poc-table-wrap"><strong>{title}</strong><table className="poc-table"><thead><tr>{columns.split("\\n").filter(Boolean).map((column) => <th key={column}>{column}</th>)}</tr></thead><tbody><tr>{columns.split("\\n").filter(Boolean).map((column) => <td key={column}>—</td>)}</tr></tbody></table></div>
+      render: ({ title, columns }: TableProps) => <div className="poc-table-wrap"><strong>{title}</strong><table className="poc-table"><thead><tr>{columns.split("\n").filter(Boolean).map((column) => <th key={column}>{column}</th>)}</tr></thead><tbody><tr>{columns.split("\n").filter(Boolean).map((column) => <td key={column}>—</td>)}</tr></tbody></table></div>
     }
   },
   root: {
