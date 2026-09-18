@@ -164,11 +164,15 @@ const config: Config<Components> = {
         tabletSpan: 6,
         mobileSpan: 12
       },
-      render: ({ title, body, span, puck }) => (
+      render: ({ title, body, span, tabletSpan, mobileSpan, puck }) => (
         <article
           ref={puck.dragRef}
           className="poc-card"
-          style={{ gridColumn: `span ${span}` }}
+          style={{
+            gridColumn: `span ${span}`,
+            "--poc-card-span-tablet": tabletSpan,
+            "--poc-card-span-mobile": mobileSpan
+          } as CSSProperties}
         >
           <strong>{title}</strong>
           <span>{body}</span>
