@@ -1,6 +1,6 @@
 # Puck PoC
 
-Phase 0 검증을 위한 최소 Puck 앱입니다.
+Phase 0~2 검증을 위한 Puck Editor와 독립 Project Renderer 앱입니다.
 
 ## 검증 범위
 
@@ -14,6 +14,8 @@ Phase 0 검증을 위한 최소 Puck 앱입니다.
 - onChange / onPublish 데이터 흐름
 - 브라우저 localStorage 기반 Puck Data + Project JSON 저장
 - Mobile / Tablet / Desktop viewport
+- Puck과 분리된 Project JSON v1 Renderer
+- 알 수 없는 Node Type의 안전한 placeholder 처리
 
 ## 실행
 
@@ -26,4 +28,4 @@ Production build:
 
     npm run build
 
-이 PoC의 목적은 최종 Editor UX를 구현하는 것이 아니라, Puck을 프로젝트의 기본 Editor Layer로 사용할 수 있는지 검증하는 것입니다.
+상단의 **Open schema renderer**를 누르면 현재 Project JSON을 Puck 없이 렌더링하는 독립 Renderer를 확인할 수 있습니다. Renderer의 기준 문서는 저장소 루트의 `SCHEMA_SPEC.md`입니다.

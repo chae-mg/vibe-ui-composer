@@ -8,11 +8,14 @@ import {
 import type { CSSProperties } from "react";
 import {
   createDefaultProject,
-  projectToPuckData,
-  puckDataToProject,
-  validateProjectRoundTrip,
   type ProjectDocument
 } from "./project-schema";
+import {
+  projectToPuckData,
+  puckDataToProject,
+  validateProjectRoundTrip
+} from "./puck-adapter";
+import { ProjectRenderer } from "./renderer";
 
 const STORAGE_KEY = "ui-composer-puck-poc";
 
@@ -209,22 +212,25 @@ function loadData(): Data {
 
 export function Puck() {
   const [savedAt, setSavedAt] = useState<string | null>(null);
+  const [showSchemaRenderer, setShowSchemaRenderer] = useState(false);
   const initialData = useMemo(loadData, []);
   const initialProject = useMemo<ProjectDocument>(
     () => puckDataToProject(initialData),
     [initialData]
   );
+  const [currentProject, setCurrentProject] = useState(initialProject);
   const validation = useMemo(
-    () => validateProjectRoundTrip(initialProject),
-    [initialProject]
+    () => validateProjectRoundTrip(currentProject),
+    [currentProject]
   );
 
   const persist = (data: Data) => {
-    const project = puckDataToProject(data);
+    const project = puckDataToProject(data, currentProject.name, currentProject);
     localStorage.setItem(
       STORAGE_KEY,
       JSON.stringify({ puckData: data, project })
     );
+    setCurrentProject(project);
     setSavedAt(new Date().toLocaleTimeString("ko-KR"));
   };
 
@@ -235,14 +241,30 @@ export function Puck() {
   return (
     <div className="poc-shell">
       <div className="poc-status" aria-live="polite">
-        <span>Phase 0 · schema / nesting validation</span>
+        <span>Phase 2 · schema / renderer validation</span>
         <span>
           {validationPassed
             ? `Schema adapter ✓ · ${Object.keys(initialProject.nodes).length} nodes`
             : "Schema adapter needs review"}
           {savedAt ? " · Saved " + savedAt : ""}
         </span>
+        <button
+          className="poc-renderer-toggle"
+          type="button"
+          onClick={() => setShowSchemaRenderer((visible) => !visible)}
+        >
+          {showSchemaRenderer ? "Hide schema renderer" : "Open schema renderer"}
+        </button>
       </div>
+      {showSchemaRenderer ? (
+        <section className="poc-schema-preview" aria-label="Independent schema renderer">
+          <div className="poc-schema-preview__header">
+            <strong>Independent Project JSON Renderer</strong>
+            <span>{currentProject.name} · {currentProject.schemaVersion}</span>
+          </div>
+          <ProjectRenderer project={currentProject} breakpoint="desktop" />
+        </section>
+      ) : null}
       <PuckEditor
         config={config}
         data={initialData}
