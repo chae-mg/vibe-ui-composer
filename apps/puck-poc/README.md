@@ -1,6 +1,6 @@
 # Puck PoC
 
-Phase 0~3 검증을 위한 Registry 기반 Puck Editor와 독립 Project Renderer 앱입니다.
+Phase 0~4 검증을 위한 Registry 기반 Puck Editor와 독립 Project Renderer 앱입니다.
 
 ## 검증 범위
 
@@ -16,6 +16,8 @@ Phase 0~3 검증을 위한 Registry 기반 Puck Editor와 독립 Project Rendere
 - Mobile / Tablet / Desktop viewport
 - Puck과 분리된 Project JSON v1 Renderer
 - 14개 Component Registry와 Child Constraint metadata
+- Registry Child Constraint에서 자동으로 계산되는 Nested Slot 허용 목록
+- Canvas 상호작용을 위한 Duplicate / Delete / Reorder Project Tree 연산
 - 알 수 없는 Node Type의 안전한 placeholder 처리
 
 ## 실행

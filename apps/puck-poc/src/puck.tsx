@@ -16,7 +16,11 @@ import {
   validateProjectRoundTrip
 } from "./puck-adapter";
 import { ProjectRenderer } from "./renderer";
-import { componentRegistry, getComponentDefinition } from "./component-registry";
+import {
+  componentRegistry,
+  getComponentDefinition,
+  type ComponentType
+} from "./component-registry";
 
 const STORAGE_KEY = "ui-composer-puck-poc";
 
@@ -39,6 +43,7 @@ type CardProps = {
   span: number;
   tabletSpan: number;
   mobileSpan: number;
+  content: Slot;
 };
 type ContainerProps = { content: Slot };
 type FlexProps = { direction: "row" | "column"; gap: number; content: Slot };
@@ -66,6 +71,28 @@ type Components = {
 
 const registryProps = <T extends Parameters<typeof getComponentDefinition>[0]>(type: T) =>
   getComponentDefinition(type)?.defaultProps ?? {};
+
+const PROJECT_TO_PUCK_COMPONENT: Record<ComponentType, string> = {
+  Page: "root",
+  Section: "SectionBlock",
+  Container: "ContainerBlock",
+  Flex: "FlexBlock",
+  Grid: "GridBlock",
+  Card: "CardBlock",
+  Heading: "HeadingBlock",
+  Text: "TextBlock",
+  Button: "ButtonBlock",
+  Input: "InputBlock",
+  Select: "SelectBlock",
+  Badge: "BadgeBlock",
+  Divider: "DividerBlock",
+  Table: "TableBlock"
+};
+
+const slotAllow = (type: ComponentType) =>
+  getComponentDefinition(type)?.allowedChildren
+    .map((childType) => PROJECT_TO_PUCK_COMPONENT[childType])
+    .filter((componentName): componentName is string => Boolean(componentName && componentName !== "root")) ?? [];
 
 const config: Config<Components> = {
   components: {
@@ -126,7 +153,7 @@ const config: Config<Components> = {
         },
         content: {
           type: "slot",
-          allow: ["HeadingBlock", "TextBlock", "ButtonBlock", "GridBlock"]
+          allow: slotAllow("Section")
         }
       },
       defaultProps: registryProps("Section") as SectionProps,
@@ -144,7 +171,7 @@ const config: Config<Components> = {
         gap: { type: "number", min: 0, max: 64 },
         content: {
           type: "slot",
-          allow: ["CardBlock", "HeadingBlock", "TextBlock", "ButtonBlock"]
+          allow: slotAllow("Grid")
         }
       },
       defaultProps: registryProps("Grid") as GridProps,
@@ -174,10 +201,11 @@ const config: Config<Components> = {
         body: { type: "text" },
         span: { type: "number", min: 1, max: 12 },
         tabletSpan: { type: "number", min: 1, max: 12 },
-        mobileSpan: { type: "number", min: 1, max: 12 }
+        mobileSpan: { type: "number", min: 1, max: 12 },
+        content: { type: "slot", allow: slotAllow("Card") }
       },
       defaultProps: registryProps("Card") as CardProps,
-      render: ({ title, body, span, tabletSpan, mobileSpan, puck }) => (
+      render: ({ title, body, span, tabletSpan, mobileSpan, content: Content, puck }) => (
         <article
           ref={puck.dragRef}
           className="poc-card"
@@ -188,14 +216,15 @@ const config: Config<Components> = {
           } as CSSProperties}
         >
           <strong>{title}</strong>
-          <span>{body}</span>
+          <span className="poc-card-value">{body}</span>
+          <Content className="poc-card-content poc-slot" />
         </article>
       )
     },
     ContainerBlock: {
       label: getComponentDefinition("Container")?.label ?? "Container",
       fields: {
-        content: { type: "slot", allow: ["HeadingBlock", "TextBlock", "ButtonBlock", "FlexBlock", "GridBlock", "CardBlock", "InputBlock", "SelectBlock", "BadgeBlock", "DividerBlock", "TableBlock"] }
+        content: { type: "slot", allow: slotAllow("Container") }
       },
       defaultProps: registryProps("Container") as ContainerProps,
       render: ({ content: Content }) => <div className="poc-renderer-container"><Content className="poc-slot" /></div>
@@ -205,7 +234,7 @@ const config: Config<Components> = {
       fields: {
         direction: { type: "select", options: [{ label: "Row", value: "row" }, { label: "Column", value: "column" }] },
         gap: { type: "number", min: 0, max: 64 },
-        content: { type: "slot", allow: ["HeadingBlock", "TextBlock", "ButtonBlock", "CardBlock", "InputBlock", "SelectBlock", "BadgeBlock", "DividerBlock", "TableBlock"] }
+        content: { type: "slot", allow: slotAllow("Flex") }
       },
       defaultProps: registryProps("Flex") as FlexProps,
       render: ({ direction, gap, content: Content }) => (
@@ -319,10 +348,10 @@ export function Puck() {
   return (
     <div className="poc-shell">
       <div className="poc-status" aria-live="polite">
-        <span>Phase 3 · registry / schema validation</span>
+        <span>Phase 4 · canvas interaction validation</span>
         <span>
           {validationPassed
-            ? `Registry ✓ · ${componentRegistry.length} components · Schema adapter ✓ · ${Object.keys(initialProject.nodes).length} nodes`
+            ? `Canvas DnD ✓ · Registry ✓ · ${componentRegistry.length} components · Schema adapter ✓ · ${Object.keys(initialProject.nodes).length} nodes`
             : "Schema adapter needs review"}
           {savedAt ? " · Saved " + savedAt : ""}
         </span>

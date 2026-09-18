@@ -13,6 +13,8 @@ type PuckComponentData = {
 
 const PROJECT_TO_PUCK_TYPE: Record<string, string> = {
   Section: "SectionBlock",
+  Container: "ContainerBlock",
+  Flex: "FlexBlock",
   Grid: "GridBlock",
   Card: "CardBlock",
   Heading: "HeadingBlock",
@@ -27,6 +29,8 @@ const PROJECT_TO_PUCK_TYPE: Record<string, string> = {
 
 const PUCK_TO_PROJECT_TYPE: Record<string, string> = {
   SectionBlock: "Section",
+  ContainerBlock: "Container",
+  FlexBlock: "Flex",
   GridBlock: "Grid",
   CardBlock: "Card",
   HeadingBlock: "Heading",

@@ -151,7 +151,7 @@ export const componentRegistry: ComponentDefinition[] = [
     label: "Card",
     icon: "card",
     category: "layout",
-    defaultProps: { title: "Card", body: "Card content", span: 6, tabletSpan: 6, mobileSpan: 4 },
+    defaultProps: { title: "Card", body: "Card content", span: 6, tabletSpan: 6, mobileSpan: 4, content: [] },
     defaultStyle: { radius: 12, padding: 16 },
     variants: [],
     allowedChildren: ["Text", "Button", "Badge", "Divider"],

@@ -56,4 +56,4 @@ AI UI 생성, Prompt-to-UI, 협업, 로그인, 서버 데이터베이스 연결�
 
 ## 현재 상태
 
-Phase 3 Component Registry까지 구현했습니다. `apps/puck-poc`에서 Registry 기반 14개 Component, Puck Left Panel, 앱 소유 Project JSON v1, 독립 Renderer, Grid/Responsive 처리를 확인할 수 있습니다. Schema 기준은 [SCHEMA_SPEC](./SCHEMA_SPEC.md), Component 정의는 [COMPONENT_CATALOG](./COMPONENT_CATALOG.md), 실행 방법은 [PoC README](./apps/puck-poc/README.md)를 참고하세요. 다음 단계는 Phase 4 Canvas Drag & Drop입니다.
+Phase 4 Canvas Drag & Drop까지 구현을 진행했습니다. `apps/puck-poc`에서 Registry 기반 14개 Component, Registry 제약을 반영한 Puck Slot, 앱 소유 Project JSON v1, 독립 Renderer, Grid/Responsive 처리와 Canvas 상호작용 검증을 확인할 수 있습니다. Schema 기준은 [SCHEMA_SPEC](./SCHEMA_SPEC.md), Component 정의는 [COMPONENT_CATALOG](./COMPONENT_CATALOG.md), 실행 방법은 [PoC README](./apps/puck-poc/README.md)를 참고하세요. 다음 단계는 Phase 5 Grid System입니다.

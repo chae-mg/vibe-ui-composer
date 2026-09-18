@@ -151,7 +151,8 @@ body { min-height: 100vh; }
   box-shadow: 0 6px 18px rgb(32 55 94 / 8%);
 }
 .poc-card strong { color: #172033; font-size: 14px; }
-.poc-card span { color: #526079; font-size: 24px; font-weight: 700; }
+.poc-card-value { color: #526079; font-size: 24px; font-weight: 700; }
+.poc-card-content { display: grid; gap: 8px; }
 @media (max-width: 1023px) {
   .poc-page { padding: 16px; }
   .poc-card { grid-column: span var(--poc-card-span-tablet); }
