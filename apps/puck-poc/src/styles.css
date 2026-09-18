@@ -83,9 +83,10 @@ body { min-height: 100vh; }
 .poc-card span { color: #526079; font-size: 24px; font-weight: 700; }
 @media (max-width: 1023px) {
   .poc-page { padding: 16px; }
+  .poc-card { grid-column: span var(--poc-card-span-tablet); }
 }
 @media (max-width: 767px) {
   .poc-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .poc-grid-overlay { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-  .poc-card { grid-column: span 4 !important; }
+  .poc-card { grid-column: span var(--poc-card-span-mobile); }
 }
