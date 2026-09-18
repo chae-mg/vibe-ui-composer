@@ -25,7 +25,7 @@ export type ProjectDocument = {
 
 type PuckComponentData = {
   type: string;
-  props?: Record<string, unknown>;
+  props: Record<string, unknown>;
 };
 
 const PROJECT_TO_PUCK_TYPE: Record<string, string> = {
