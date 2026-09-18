@@ -111,7 +111,7 @@ const config: Config<Components> = {
         }
       },
       defaultProps: { title: "Section", tone: "surface", content: [] },
-      render: ({ title, tone, content: Content }: SectionProps) => (
+      render: ({ title, tone, content: Content }) => (
         <section className={"poc-section poc-section--" + tone}>
           <h2>{title}</h2>
           <Content className="poc-slot" />
@@ -129,7 +129,7 @@ const config: Config<Components> = {
         }
       },
       defaultProps: { columns: 12, gap: 16, content: [] },
-      render: ({ columns, gap, content: Content }: GridProps) => {
+      render: ({ columns, gap, content: Content }) => {
         const gridStyle = {
           "--poc-grid-columns": columns,
           "--poc-grid-gap": `${gap}px`
@@ -164,7 +164,7 @@ const config: Config<Components> = {
         tabletSpan: 6,
         mobileSpan: 12
       },
-      render: ({ title, body, span, puck }: CardProps & { puck: { dragRef: (node: HTMLElement | null) => void } }) => (
+      render: ({ title, body, span, puck }) => (
         <article
           ref={puck.dragRef}
           className="poc-card"
@@ -178,7 +178,7 @@ const config: Config<Components> = {
   },
   root: {
     fields: { title: { type: "text" } },
-    render: ({ title, children }: { title?: string; children: React.ReactNode }) => (
+    render: ({ title, children }) => (
       <main className="poc-page">
         <div className="poc-page-title">{title}</div>
         {children}
