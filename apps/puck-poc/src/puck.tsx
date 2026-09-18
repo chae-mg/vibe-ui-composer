@@ -351,7 +351,7 @@ export function Puck() {
         <span>Phase 4 · canvas interaction validation</span>
         <span>
           {validationPassed
-            ? `Canvas DnD ✓ · Registry ✓ · ${componentRegistry.length} components · Schema adapter ✓ · ${Object.keys(initialProject.nodes).length} nodes`
+            ? `Canvas DnD ✓ · Registry ✓ · ${componentRegistry.length} components · Schema adapter ✓ · ${Object.keys(currentProject.nodes).length} nodes`
             : "Schema adapter needs review"}
           {savedAt ? " · Saved " + savedAt : ""}
         </span>
