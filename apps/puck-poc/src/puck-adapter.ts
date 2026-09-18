@@ -18,7 +18,11 @@ const PROJECT_TO_PUCK_TYPE: Record<string, string> = {
   Heading: "HeadingBlock",
   Text: "TextBlock",
   Button: "ButtonBlock",
-  Input: "InputBlock"
+  Input: "InputBlock",
+  Select: "SelectBlock",
+  Badge: "BadgeBlock",
+  Divider: "DividerBlock",
+  Table: "TableBlock"
 };
 
 const PUCK_TO_PROJECT_TYPE: Record<string, string> = {
@@ -28,7 +32,11 @@ const PUCK_TO_PROJECT_TYPE: Record<string, string> = {
   HeadingBlock: "Heading",
   TextBlock: "Text",
   ButtonBlock: "Button",
-  InputBlock: "Input"
+  InputBlock: "Input",
+  SelectBlock: "Select",
+  BadgeBlock: "Badge",
+  DividerBlock: "Divider",
+  TableBlock: "Table"
 };
 
 function isComponentData(value: unknown): value is PuckComponentData {

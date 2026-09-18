@@ -62,6 +62,26 @@ body { min-height: 100vh; }
   background: #fff;
   font: inherit;
 }
+.poc-field { display: grid; gap: 6px; color: #526079; font-size: 12px; }
+.poc-badge {
+  display: inline-flex;
+  width: fit-content;
+  border-radius: 999px;
+  padding: 4px 8px;
+  font-size: 12px;
+  font-weight: 700;
+}
+.poc-badge--success { color: #176b45; background: #dff7ea; }
+.poc-badge--warning { color: #8a5a0a; background: #fff1c7; }
+.poc-badge--danger { color: #9a3f3f; background: #ffe0e0; }
+.poc-badge--neutral { color: #526079; background: #e9edf5; }
+.poc-divider { border-color: #d8deea; }
+.poc-divider--horizontal { width: 100%; border-top: 1px solid; }
+.poc-divider--vertical { min-height: 32px; border-left: 1px solid; }
+.poc-table-wrap { overflow-x: auto; display: grid; gap: 10px; }
+.poc-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.poc-table th, .poc-table td { border-bottom: 1px solid #e9edf5; padding: 8px; text-align: left; }
+.poc-table th { color: #526079; font-weight: 700; }
 .poc-unknown-node {
   border: 1px dashed #d36b6b;
   border-radius: 8px;

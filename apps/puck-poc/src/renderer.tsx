@@ -6,6 +6,7 @@ import {
   type ProjectDocument,
   type ProjectNode
 } from "./project-schema";
+import { getComponentDefinition } from "./component-registry";
 
 export type ProjectRendererProps = {
   project: ProjectDocument;
@@ -64,6 +65,15 @@ function NodeView({
   const node = project.nodes[nodeId];
   if (!node) return null;
 
+  const definition = getComponentDefinition(node.type);
+  if (!definition) {
+    return (
+      <div className="poc-unknown-node" data-schema-node={node.id}>
+        Unsupported node type: {node.type}
+      </div>
+    );
+  }
+
   if (trail.includes(nodeId)) {
     return (
       <div className="poc-unknown-node" data-schema-node={nodeId}>
@@ -102,6 +112,11 @@ function NodeView({
           <div className="poc-slot">{children}</div>
         </section>
       );
+    }
+    case "Heading": {
+      const level = stringProp(node, "level", "h2");
+      const Heading = level === "h1" || level === "h3" ? level : "h2";
+      return <Heading className="poc-heading" data-schema-node={node.id}>{stringProp(node, "text", definition.label)}</Heading>;
     }
     case "Container":
       return <div className="poc-renderer-container" data-schema-node={node.id}>{children}</div>;
@@ -150,10 +165,32 @@ function NodeView({
       return <button className={`poc-button poc-button--${stringProp(node, "variant", "primary")}`} type="button" data-schema-node={node.id}>{stringProp(node, "label", "Button")}</button>;
     case "Input":
       return <input className="poc-input" placeholder={stringProp(node, "placeholder", "Input")} aria-label={stringProp(node, "label", "Input")} data-schema-node={node.id} />;
+    case "Select":
+      return (
+        <label className="poc-field" data-schema-node={node.id}>
+          <span>{stringProp(node, "label", "Select")}</span>
+          <select className="poc-input" defaultValue="0">
+            {stringProp(node, "options", "Option 1\nOption 2").split("\n").filter(Boolean).map((option, index) => <option key={option} value={String(index)}>{option}</option>)}
+          </select>
+        </label>
+      );
+    case "Badge":
+      return <span className={`poc-badge poc-badge--${stringProp(node, "tone", "neutral")}`} data-schema-node={node.id}>{stringProp(node, "text", "Badge")}</span>;
+    case "Divider":
+      return <div className={`poc-divider poc-divider--${stringProp(node, "orientation", "horizontal")}`} role="separator" data-schema-node={node.id} />;
+    case "Table": {
+      const columns = stringProp(node, "columns", "Name\nStatus\nUpdated").split("\n").filter(Boolean);
+      return (
+        <div className="poc-table-wrap" data-schema-node={node.id}>
+          <strong>{stringProp(node, "title", "Table")}</strong>
+          <table className="poc-table"><thead><tr>{columns.map((column) => <th key={column}>{column}</th>)}</tr></thead><tbody><tr>{columns.map((column) => <td key={column}>—</td>)}</tr></tbody></table>
+        </div>
+      );
+    }
     default:
       return (
         <div className="poc-unknown-node" data-schema-node={node.id}>
-          Unsupported node type: {node.type}
+          Unsupported node type: {definition.label}
           {children}
         </div>
       );

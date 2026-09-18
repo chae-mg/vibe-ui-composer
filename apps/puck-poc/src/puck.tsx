@@ -16,6 +16,7 @@ import {
   validateProjectRoundTrip
 } from "./puck-adapter";
 import { ProjectRenderer } from "./renderer";
+import { componentRegistry, getComponentDefinition } from "./component-registry";
 
 const STORAGE_KEY = "ui-composer-puck-poc";
 
@@ -39,6 +40,13 @@ type CardProps = {
   tabletSpan: number;
   mobileSpan: number;
 };
+type ContainerProps = { content: Slot };
+type FlexProps = { direction: "row" | "column"; gap: number; content: Slot };
+type InputProps = { label: string; placeholder: string; inputType: "text" | "email" | "password" };
+type SelectProps = { label: string; options: string };
+type BadgeProps = { text: string; tone: "success" | "warning" | "danger" | "neutral" };
+type DividerProps = { orientation: "horizontal" | "vertical" };
+type TableProps = { title: string; columns: string };
 
 type Components = {
   HeadingBlock: HeadingProps;
@@ -47,12 +55,22 @@ type Components = {
   SectionBlock: SectionProps;
   GridBlock: GridProps;
   CardBlock: CardProps;
+  ContainerBlock: ContainerProps;
+  FlexBlock: FlexProps;
+  InputBlock: InputProps;
+  SelectBlock: SelectProps;
+  BadgeBlock: BadgeProps;
+  DividerBlock: DividerProps;
+  TableBlock: TableProps;
 };
+
+const registryProps = <T extends Parameters<typeof getComponentDefinition>[0]>(type: T) =>
+  getComponentDefinition(type)?.defaultProps ?? {};
 
 const config: Config<Components> = {
   components: {
     HeadingBlock: {
-      label: "Heading",
+      label: getComponentDefinition("Heading")?.label ?? "Heading",
       fields: {
         text: { type: "text" },
         level: {
@@ -64,22 +82,20 @@ const config: Config<Components> = {
           ]
         }
       },
-      defaultProps: { text: "Build your interface", level: "h1" },
+      defaultProps: registryProps("Heading") as HeadingProps,
       render: ({ text, level }: HeadingProps) => {
         const Heading = level;
         return <Heading className="poc-heading">{text}</Heading>;
       }
     },
     TextBlock: {
-      label: "Text",
+      label: getComponentDefinition("Text")?.label ?? "Text",
       fields: { text: { type: "textarea" } },
-      defaultProps: {
-        text: "Drag a component into the canvas, select it, and edit its properties."
-      },
+      defaultProps: registryProps("Text") as TextProps,
       render: ({ text }: TextProps) => <p className="poc-text">{text}</p>
     },
     ButtonBlock: {
-      label: "Button",
+      label: getComponentDefinition("Button")?.label ?? "Button",
       fields: {
         label: { type: "text" },
         variant: {
@@ -90,7 +106,7 @@ const config: Config<Components> = {
           ]
         }
       },
-      defaultProps: { label: "Continue", variant: "primary" },
+      defaultProps: registryProps("Button") as ButtonProps,
       render: ({ label, variant }: ButtonProps) => (
         <button className={"poc-button poc-button--" + variant} type="button">
           {label}
@@ -98,7 +114,7 @@ const config: Config<Components> = {
       )
     },
     SectionBlock: {
-      label: "Section",
+      label: getComponentDefinition("Section")?.label ?? "Section",
       fields: {
         title: { type: "text" },
         tone: {
@@ -113,7 +129,7 @@ const config: Config<Components> = {
           allow: ["HeadingBlock", "TextBlock", "ButtonBlock", "GridBlock"]
         }
       },
-      defaultProps: { title: "Section", tone: "surface", content: [] },
+      defaultProps: registryProps("Section") as SectionProps,
       render: ({ title, tone, content: Content }) => (
         <section className={"poc-section poc-section--" + tone}>
           <h2>{title}</h2>
@@ -122,7 +138,7 @@ const config: Config<Components> = {
       )
     },
     GridBlock: {
-      label: "Grid",
+      label: getComponentDefinition("Grid")?.label ?? "Grid",
       fields: {
         columns: { type: "number", min: 1, max: 12 },
         gap: { type: "number", min: 0, max: 64 },
@@ -131,7 +147,7 @@ const config: Config<Components> = {
           allow: ["CardBlock", "HeadingBlock", "TextBlock", "ButtonBlock"]
         }
       },
-      defaultProps: { columns: 12, gap: 16, content: [] },
+      defaultProps: registryProps("Grid") as GridProps,
       render: ({ columns, gap, content: Content }) => {
         const gridStyle = {
           "--poc-grid-columns": columns,
@@ -151,7 +167,7 @@ const config: Config<Components> = {
       }
     },
     CardBlock: {
-      label: "Card",
+      label: getComponentDefinition("Card")?.label ?? "Card",
       inline: true,
       fields: {
         title: { type: "text" },
@@ -160,13 +176,7 @@ const config: Config<Components> = {
         tabletSpan: { type: "number", min: 1, max: 12 },
         mobileSpan: { type: "number", min: 1, max: 12 }
       },
-      defaultProps: {
-        title: "Card",
-        body: "Card content",
-        span: 6,
-        tabletSpan: 6,
-        mobileSpan: 12
-      },
+      defaultProps: registryProps("Card") as CardProps,
       render: ({ title, body, span, tabletSpan, mobileSpan, puck }) => (
         <article
           ref={puck.dragRef}
@@ -181,6 +191,63 @@ const config: Config<Components> = {
           <span>{body}</span>
         </article>
       )
+    },
+    ContainerBlock: {
+      label: getComponentDefinition("Container")?.label ?? "Container",
+      fields: {
+        content: { type: "slot", allow: ["HeadingBlock", "TextBlock", "ButtonBlock", "FlexBlock", "GridBlock", "CardBlock", "InputBlock", "SelectBlock", "BadgeBlock", "DividerBlock", "TableBlock"] }
+      },
+      defaultProps: registryProps("Container") as ContainerProps,
+      render: ({ content: Content }) => <div className="poc-renderer-container"><Content className="poc-slot" /></div>
+    },
+    FlexBlock: {
+      label: getComponentDefinition("Flex")?.label ?? "Flex",
+      fields: {
+        direction: { type: "select", options: [{ label: "Row", value: "row" }, { label: "Column", value: "column" }] },
+        gap: { type: "number", min: 0, max: 64 },
+        content: { type: "slot", allow: ["HeadingBlock", "TextBlock", "ButtonBlock", "CardBlock", "InputBlock", "SelectBlock", "BadgeBlock", "DividerBlock", "TableBlock"] }
+      },
+      defaultProps: registryProps("Flex") as FlexProps,
+      render: ({ direction, gap, content: Content }) => (
+        <div className="poc-renderer-flex" style={{ display: "flex", flexDirection: direction, gap: `${gap}px` }}><Content className="poc-slot" /></div>
+      )
+    },
+    InputBlock: {
+      label: getComponentDefinition("Input")?.label ?? "Input",
+      fields: {
+        label: { type: "text" },
+        placeholder: { type: "text" },
+        inputType: { type: "select", options: [{ label: "Text", value: "text" }, { label: "Email", value: "email" }, { label: "Password", value: "password" }] }
+      },
+      defaultProps: registryProps("Input") as InputProps,
+      render: ({ label, placeholder, inputType }: InputProps) => <label className="poc-field"><span>{label}</span><input className="poc-input" type={inputType} placeholder={placeholder} /></label>
+    },
+    SelectBlock: {
+      label: getComponentDefinition("Select")?.label ?? "Select",
+      fields: { label: { type: "text" }, options: { type: "textarea" } },
+      defaultProps: registryProps("Select") as SelectProps,
+      render: ({ label, options }: SelectProps) => <label className="poc-field"><span>{label}</span><select className="poc-input">{options.split("\\n").filter(Boolean).map((option) => <option key={option}>{option}</option>)}</select></label>
+    },
+    BadgeBlock: {
+      label: getComponentDefinition("Badge")?.label ?? "Badge",
+      fields: {
+        text: { type: "text" },
+        tone: { type: "select", options: [{ label: "Success", value: "success" }, { label: "Warning", value: "warning" }, { label: "Danger", value: "danger" }, { label: "Neutral", value: "neutral" }] }
+      },
+      defaultProps: registryProps("Badge") as BadgeProps,
+      render: ({ text, tone }: BadgeProps) => <span className={`poc-badge poc-badge--${tone}`}>{text}</span>
+    },
+    DividerBlock: {
+      label: getComponentDefinition("Divider")?.label ?? "Divider",
+      fields: { orientation: { type: "select", options: [{ label: "Horizontal", value: "horizontal" }, { label: "Vertical", value: "vertical" }] } },
+      defaultProps: registryProps("Divider") as DividerProps,
+      render: ({ orientation }: DividerProps) => <div className={`poc-divider poc-divider--${orientation}`} role="separator" />
+    },
+    TableBlock: {
+      label: getComponentDefinition("Table")?.label ?? "Table",
+      fields: { title: { type: "text" }, columns: { type: "textarea" } },
+      defaultProps: registryProps("Table") as TableProps,
+      render: ({ title, columns }: TableProps) => <div className="poc-table-wrap"><strong>{title}</strong><table className="poc-table"><thead><tr>{columns.split("\\n").filter(Boolean).map((column) => <th key={column}>{column}</th>)}</tr></thead><tbody><tr>{columns.split("\\n").filter(Boolean).map((column) => <td key={column}>—</td>)}</tr></tbody></table></div>
     }
   },
   root: {
@@ -254,10 +321,10 @@ export function Puck() {
   return (
     <div className="poc-shell">
       <div className="poc-status" aria-live="polite">
-        <span>Phase 2 · schema / renderer validation</span>
+        <span>Phase 3 · registry / schema validation</span>
         <span>
           {validationPassed
-            ? `Schema adapter ✓ · ${Object.keys(initialProject.nodes).length} nodes`
+            ? `Registry ✓ · ${componentRegistry.length} components · Schema adapter ✓ · ${Object.keys(initialProject.nodes).length} nodes`
             : "Schema adapter needs review"}
           {savedAt ? " · Saved " + savedAt : ""}
         </span>

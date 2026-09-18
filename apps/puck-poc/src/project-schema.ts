@@ -44,9 +44,14 @@ export const PROJECT_NODE_TYPES = [
   "Flex",
   "Grid",
   "Card",
+  "Heading",
   "Text",
   "Button",
-  "Input"
+  "Input",
+  "Select",
+  "Badge",
+  "Divider",
+  "Table"
 ] as const;
 
 export function getResponsiveGridSpan(
