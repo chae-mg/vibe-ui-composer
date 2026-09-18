@@ -1,5 +1,5 @@
 import { canAcceptChild, getComponentDefinition } from "./component-registry";
-import type { ProjectDocument, ProjectNode } from "./project-schema";
+import type { Breakpoint, GridSettings, ProjectDocument, ProjectNode } from "./project-schema";
 
 function touch(project: ProjectDocument, nodes: Record<string, ProjectNode>): ProjectDocument {
   return { ...project, updatedAt: new Date().toISOString(), nodes };
@@ -78,6 +78,75 @@ export function reorderChildren(
   const [moved] = children.splice(fromIndex, 1);
   children.splice(toIndex, 0, moved);
   return touch(project, { ...project.nodes, [parentId]: { ...parent, children } });
+}
+
+export const GRID_COLUMN_PRESETS = [4, 6, 8, 12, 16] as const;
+
+export function clampGridSpan(
+  value: number,
+  columns: number,
+  minSpan = 1,
+  maxSpan = columns
+): number {
+  const safeValue = Number.isFinite(value) ? Math.round(value) : minSpan;
+  const safeColumns = Math.max(1, Math.round(columns));
+  const lowerBound = Math.max(1, Math.round(minSpan));
+  const upperBound = Math.max(lowerBound, Math.min(safeColumns, Math.round(maxSpan)));
+  return Math.min(upperBound, Math.max(lowerBound, safeValue));
+}
+
+function normalizeGridSettings(settings: GridSettings): GridSettings {
+  return {
+    columns: Math.min(24, Math.max(1, Math.round(settings.columns))),
+    gutter: Math.min(96, Math.max(0, Math.round(settings.gutter))),
+    margin: Math.min(128, Math.max(0, Math.round(settings.margin)))
+  };
+}
+
+export function updateGridSettings(
+  project: ProjectDocument,
+  breakpoint: Breakpoint,
+  patch: Partial<GridSettings>
+): ProjectDocument {
+  const nextGrid = normalizeGridSettings({ ...project.grid[breakpoint], ...patch });
+  let nodes = project.nodes;
+
+  if (breakpoint === "desktop") {
+    nodes = Object.fromEntries(
+      Object.entries(project.nodes).map(([id, node]) => {
+        const definition = getComponentDefinition(node.type);
+        const span = definition
+          ? clampGridSpan(
+              node.layout.gridSpan,
+              nextGrid.columns,
+              definition.resizeRules.minSpan,
+              definition.resizeRules.maxSpan
+            )
+          : clampGridSpan(node.layout.gridSpan, nextGrid.columns);
+        const props = node.type === "Grid"
+          ? { ...node.props, columns: nextGrid.columns, gap: nextGrid.gutter }
+          : node.props;
+        return [id, { ...node, props, layout: { ...node.layout, gridSpan: span } }];
+      })
+    );
+  }
+
+  return {
+    ...project,
+    grid: { ...project.grid, [breakpoint]: nextGrid },
+    nodes,
+    updatedAt: new Date().toISOString()
+  };
+}
+
+export function setGridOverlay(project: ProjectDocument, visible: boolean): ProjectDocument {
+  const nodes = Object.fromEntries(
+    Object.entries(project.nodes).map(([id, node]) => [
+      id,
+      node.type === "Grid" ? { ...node, props: { ...node.props, showOverlay: visible } } : node
+    ])
+  );
+  return { ...project, nodes, updatedAt: new Date().toISOString() };
 }
 
 export type ProjectTreeIssue = { nodeId: string; message: string };

@@ -94,7 +94,11 @@ function NodeView({
   switch (node.type) {
     case "Page":
       return (
-        <main className="poc-page poc-renderer-page" data-schema-node={node.id}>
+        <main
+          className="poc-page poc-renderer-page"
+          style={{ "--poc-page-margin": `${getGridSettings(project, breakpoint).margin}px` } as CSSProperties}
+          data-schema-node={node.id}
+        >
           <div className="poc-page-title">
             {stringProp(node, "title", project.name)}
           </div>
@@ -154,8 +158,8 @@ function NodeView({
       return (
         <article className="poc-card" style={{ gridColumn: `span ${span}` }} data-schema-node={node.id}>
           <strong>{stringProp(node, "title", "Card")}</strong>
-          <span>{stringProp(node, "body", "Card content")}</span>
-          {children}
+          <span className="poc-card-value">{stringProp(node, "body", "Card content")}</span>
+          <div className="poc-card-content poc-slot">{children}</div>
         </article>
       );
     }

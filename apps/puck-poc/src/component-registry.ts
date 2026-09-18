@@ -134,7 +134,7 @@ export const componentRegistry: ComponentDefinition[] = [
     label: "Grid",
     icon: "grid",
     category: "layout",
-    defaultProps: { columns: 12, gap: 16, content: [] },
+    defaultProps: { columns: 12, gap: 24, showOverlay: true, content: [] },
     defaultStyle: {},
     variants: [],
     allowedChildren: ["Card", "Heading", "Text", "Button", "Input", "Select", "Badge", "Divider", "Table"],

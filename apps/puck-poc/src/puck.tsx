@@ -15,6 +15,12 @@ import {
   puckDataToProject,
   validateProjectRoundTrip
 } from "./puck-adapter";
+import {
+  GRID_COLUMN_PRESETS,
+  setGridOverlay,
+  updateGridSettings
+} from "./project-operations";
+import type { GridSettings } from "./project-schema";
 import { ProjectRenderer } from "./renderer";
 import {
   componentRegistry,
@@ -35,6 +41,7 @@ type SectionProps = {
 type GridProps = {
   columns: number;
   gap: number;
+  showOverlay: boolean;
   content: Slot;
 };
 type CardProps = {
@@ -167,15 +174,22 @@ const config: Config<Components> = {
     GridBlock: {
       label: getComponentDefinition("Grid")?.label ?? "Grid",
       fields: {
-        columns: { type: "number", min: 1, max: 12 },
-        gap: { type: "number", min: 0, max: 64 },
+        columns: { type: "number", min: 1, max: 24 },
+        gap: { type: "number", min: 0, max: 96 },
+        showOverlay: {
+          type: "radio",
+          options: [
+            { label: "Show overlay", value: true },
+            { label: "Hide overlay", value: false }
+          ]
+        },
         content: {
           type: "slot",
           allow: slotAllow("Grid")
         }
       },
       defaultProps: registryProps("Grid") as GridProps,
-      render: ({ columns, gap, content: Content }) => {
+      render: ({ columns, gap, showOverlay, content: Content }) => {
         const gridStyle = {
           "--poc-grid-columns": columns,
           "--poc-grid-gap": `${gap}px`
@@ -183,11 +197,13 @@ const config: Config<Components> = {
 
         return (
           <div className="poc-grid" style={gridStyle}>
-            <div className="poc-grid-overlay" aria-hidden="true">
-              {Array.from({ length: columns }, (_, index) => (
-                <span key={index}>{index + 1}</span>
-              ))}
-            </div>
+            {showOverlay ? (
+              <div className="poc-grid-overlay" aria-hidden="true">
+                {Array.from({ length: columns }, (_, index) => (
+                  <span key={index}>{index + 1}</span>
+                ))}
+              </div>
+            ) : null}
             <Content className="poc-grid-content" />
           </div>
         );
@@ -200,8 +216,8 @@ const config: Config<Components> = {
         title: { type: "text" },
         body: { type: "text" },
         span: { type: "number", min: 1, max: 12 },
-        tabletSpan: { type: "number", min: 1, max: 12 },
-        mobileSpan: { type: "number", min: 1, max: 12 },
+        tabletSpan: { type: "number", min: 1, max: 8 },
+        mobileSpan: { type: "number", min: 1, max: 4 },
         content: { type: "slot", allow: slotAllow("Card") }
       },
       defaultProps: registryProps("Card") as CardProps,
@@ -280,13 +296,19 @@ const config: Config<Components> = {
     }
   },
   root: {
-    fields: { title: { type: "text" } },
-    render: ({ title, children }) => (
-      <main className="poc-page">
-        <div className="poc-page-title">{title}</div>
-        {children}
-      </main>
-    )
+    fields: {
+      title: { type: "text" },
+      gridMargin: { type: "number", min: 0, max: 128, visible: false }
+    },
+    render: ({ title, children, gridMargin }) => {
+      const margin = typeof gridMargin === "number" && Number.isFinite(gridMargin) ? gridMargin : 32;
+      return (
+        <main className="poc-page" style={{ "--poc-page-margin": `${margin}px` } as CSSProperties}>
+          <div className="poc-page-title">{title}</div>
+          {children}
+        </main>
+      );
+    }
   }
 };
 
@@ -328,6 +350,12 @@ export function Puck() {
     [initialData, storedState.project]
   );
   const [currentProject, setCurrentProject] = useState(initialProject);
+  const [editorData, setEditorData] = useState(initialData);
+  const initialGridOverlay = useMemo(() => {
+    const gridNode = Object.values(initialProject.nodes).find((node) => node.type === "Grid");
+    return gridNode?.props.showOverlay !== false;
+  }, [initialProject]);
+  const [gridOverlayVisible, setGridOverlayVisible] = useState(initialGridOverlay);
   const validation = useMemo(
     () => validateProjectRoundTrip(currentProject),
     [currentProject]
@@ -339,8 +367,32 @@ export function Puck() {
       STORAGE_KEY,
       JSON.stringify({ puckData: data, project })
     );
+    setEditorData(data);
+    setCurrentProject(project);
+    const gridNode = Object.values(project.nodes).find((node) => node.type === "Grid");
+    if (gridNode) setGridOverlayVisible(gridNode.props.showOverlay !== false);
+    setSavedAt(new Date().toLocaleTimeString("ko-KR"));
+  };
+
+  const persistProject = (project: ProjectDocument) => {
+    const data = projectToPuckData(project);
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({ puckData: data, project })
+    );
+    setEditorData(data);
     setCurrentProject(project);
     setSavedAt(new Date().toLocaleTimeString("ko-KR"));
+  };
+
+  const updateDesktopGrid = (patch: Partial<GridSettings>) => {
+    persistProject(updateGridSettings(currentProject, "desktop", patch));
+  };
+
+  const toggleGridOverlay = () => {
+    const visible = !gridOverlayVisible;
+    setGridOverlayVisible(visible);
+    persistProject(setGridOverlay(currentProject, visible));
   };
 
   const validationPassed = validation.schemaVersion && validation.validProject;
@@ -348,10 +400,10 @@ export function Puck() {
   return (
     <div className="poc-shell">
       <div className="poc-status" aria-live="polite">
-        <span>Phase 4 · canvas interaction validation</span>
+        <span>Phase 5 · grid system validation</span>
         <span>
           {validationPassed
-            ? `Canvas DnD ✓ · Registry ✓ · ${componentRegistry.length} components · Schema adapter ✓ · ${Object.keys(currentProject.nodes).length} nodes`
+            ? `Grid ✓ · Canvas DnD ✓ · Registry ✓ · ${componentRegistry.length} components · ${Object.keys(currentProject.nodes).length} nodes`
             : "Schema adapter needs review"}
           {savedAt ? " · Saved " + savedAt : ""}
         </span>
@@ -361,6 +413,50 @@ export function Puck() {
           onClick={() => setShowSchemaRenderer((visible) => !visible)}
         >
           {showSchemaRenderer ? "Hide schema renderer" : "Open schema renderer"}
+        </button>
+      </div>
+      <div className="poc-grid-toolbar" aria-label="Desktop grid settings">
+        <strong>Desktop Grid</strong>
+        <label>
+          Columns
+          <select
+            value={currentProject.grid.desktop.columns}
+            onChange={(event) => updateDesktopGrid({ columns: Number(event.target.value) })}
+          >
+            {GRID_COLUMN_PRESETS.map((columns) => <option key={columns} value={columns}>{columns}</option>)}
+          </select>
+        </label>
+        <label>
+          Gutter
+          <input
+            type="number"
+            min={0}
+            max={96}
+            step={1}
+            value={currentProject.grid.desktop.gutter}
+            onChange={(event) => updateDesktopGrid({ gutter: Number(event.target.value) })}
+          />
+          <span>px</span>
+        </label>
+        <label>
+          Margin
+          <input
+            type="number"
+            min={0}
+            max={128}
+            step={1}
+            value={currentProject.grid.desktop.margin}
+            onChange={(event) => updateDesktopGrid({ margin: Number(event.target.value) })}
+          />
+          <span>px</span>
+        </label>
+        <button
+          className="poc-grid-toggle"
+          type="button"
+          aria-pressed={gridOverlayVisible}
+          onClick={toggleGridOverlay}
+        >
+          {gridOverlayVisible ? "Hide grid overlay" : "Show grid overlay"}
         </button>
       </div>
       {showSchemaRenderer ? (
@@ -374,7 +470,7 @@ export function Puck() {
       ) : null}
       <PuckEditor
         config={config}
-        data={initialData}
+        data={editorData}
         ui={{ leftSideBarVisible: true, rightSideBarVisible: true }}
         onChange={persist}
         onPublish={persist}

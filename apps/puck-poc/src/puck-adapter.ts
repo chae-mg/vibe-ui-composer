@@ -172,10 +172,15 @@ export function projectToPuckData(project: ProjectDocument): Data {
     .filter((node): node is ProjectNode => Boolean(node))
     .map((node) => nodeToPuck(node, project.nodes));
 
-  return {
-    content,
-    root: { props: { ...root.props, title: project.name } }
-  };
+  const rootData = {
+    props: {
+      ...root.props,
+      title: project.name,
+      gridMargin: project.grid.desktop.margin
+    }
+  } as Data["root"];
+
+  return { content, root: rootData };
 }
 
 export function validateProjectRoundTrip(project: ProjectDocument) {
