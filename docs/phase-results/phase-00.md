@@ -18,6 +18,7 @@ Status: PARTIAL
 
 - Passed: TypeScript `tsc --noEmit`
 - Passed: Vite production build
+- Passed: Project Schema adapter round-trip smoke check
 - Passed: GitHub Actions build job
 - Pending: 실제 브라우저에서 중첩 Drag & Drop, viewport 전환, Console Error 수동 확인
 - Pending: GitHub Pages deploy (Pages 설정이 활성화되지 않아 404)
