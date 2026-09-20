@@ -1,7 +1,7 @@
 # Phase 7 Result
 
 Date: 2026-09-20
-Status: PARTIAL
+Status: PASS
 
 ## Implemented
 
@@ -21,7 +21,9 @@ Status: PARTIAL
 - Passed: Card 선택 시 패널 필드 갱신 확인
 - Passed: Card Desktop span 변경 후 Canvas 갱신 및 Saved 상태 확인
 - Passed: Card Appearance 배경색 변경 후 Canvas 갱신 및 기본값 복원 확인
-- Pending: GitHub Actions 배포 및 공개 사이트 브라우저 확인
+- Passed: GitHub Actions build and deploy jobs (run 35492699031)
+- Passed: 공개 사이트에서 `Phase 7 · properties panel validation` 상태와 Properties 탭을 확인했다.
+- Passed: 공개 사이트에서 Card 선택 후 Appearance 탭과 Background / Text color / Border color / Radius / Shadow 필드를 확인했다.
 
 ## Known Issues
 
