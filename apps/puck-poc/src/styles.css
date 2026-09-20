@@ -55,6 +55,39 @@ body { min-height: 100vh; }
   font-weight: 650;
   cursor: pointer;
 }
+.poc-block-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--poc-color-border);
+  color: var(--poc-color-muted);
+  background: var(--poc-color-surface);
+  font-size: 12px;
+}
+.poc-block-toolbar__group {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.poc-block-toolbar strong { color: var(--poc-color-text); }
+.poc-block-toolbar button,
+.poc-block-toolbar select {
+  min-height: 28px;
+  border: 1px solid var(--poc-color-border);
+  border-radius: var(--poc-radius-sm);
+  padding: 4px 8px;
+  color: var(--poc-color-primary);
+  background: var(--poc-color-surface);
+  font: inherit;
+  font-weight: 650;
+}
+.poc-block-toolbar button { cursor: pointer; }
+.poc-block-toolbar button:hover { background: var(--poc-color-secondary); }
+.poc-block-toolbar__preset { display: inline-flex; align-items: center; gap: 8px; }
 .poc-grid-toolbar {
   display: flex;
   align-items: center;

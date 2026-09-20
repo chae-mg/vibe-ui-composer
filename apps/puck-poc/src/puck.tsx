@@ -57,6 +57,14 @@ import {
   getThemeStyleVars,
   type BuiltInPresetId
 } from "./theme-utils";
+import {
+  applyLayoutPreset,
+  BLOCK_OPTIONS,
+  insertBlock,
+  LAYOUT_PRESET_OPTIONS,
+  type LayoutPresetId,
+  type BlockId
+} from "./block-library";
 
 const STORAGE_KEY = "ui-composer-puck-poc";
 
@@ -564,6 +572,8 @@ function loadStoredState(): StoredState {
 export function Puck() {
   const [savedAt, setSavedAt] = useState<string | null>(null);
   const [showSchemaRenderer, setShowSchemaRenderer] = useState(false);
+  const [layoutPresetSelection, setLayoutPresetSelection] = useState("");
+  const [editorRevision, setEditorRevision] = useState(0);
   const storedState = useMemo(loadStoredState, []);
   const initialData = storedState.puckData;
   const initialProject = useMemo<ProjectDocument>(
@@ -607,6 +617,7 @@ export function Puck() {
     );
     setEditorData(data);
     setCurrentProject(project);
+    setEditorRevision((revision) => revision + 1);
     setSavedAt(new Date().toLocaleTimeString("ko-KR"));
   };
 
@@ -634,15 +645,25 @@ export function Puck() {
     persistProject({ ...currentProject, theme: preset.theme, style: preset.style });
   };
 
+  const addBlock = (blockId: BlockId) => {
+    persistProject(insertBlock(currentProject, blockId));
+  };
+
+  const updateLayoutPreset = (presetId: string) => {
+    if (!presetId) return;
+    persistProject(applyLayoutPreset(currentProject, presetId as LayoutPresetId));
+    setLayoutPresetSelection("");
+  };
+
   const validationPassed = validation.schemaVersion && validation.validProject;
 
   return (
     <div className="poc-shell" style={getThemeStyleVars(currentProject.theme, currentProject.style) as CSSProperties}>
       <div className="poc-status" aria-live="polite">
-        <span>Phase 9 · theme & style validation</span>
+        <span>Phase 10 · block & layout preset validation</span>
         <span>
           {validationPassed
-            ? `Theme ✓ · Tokens ✓ · Properties ✓ · Layout ✓ · Grid ✓ · Canvas DnD ✓ · Registry ✓ · ${componentRegistry.length} components · ${Object.keys(currentProject.nodes).length} nodes`
+            ? `Blocks ✓ · Layout Presets ✓ · Theme ✓ · Tokens ✓ · Properties ✓ · Layout ✓ · Grid ✓ · Canvas DnD ✓ · Registry ✓ · ${componentRegistry.length} components · ${Object.keys(currentProject.nodes).length} nodes`
             : "Schema adapter needs review"}
           {savedAt ? " · Saved " + savedAt : ""}
         </span>
@@ -653,6 +674,28 @@ export function Puck() {
         >
           {showSchemaRenderer ? "Hide schema renderer" : "Open schema renderer"}
         </button>
+      </div>
+      <div className="poc-block-toolbar" aria-label="Block library and layout presets">
+        <div className="poc-block-toolbar__group">
+          <strong>Block Library</strong>
+          {BLOCK_OPTIONS.map((block) => (
+            <button
+              key={block.value}
+              type="button"
+              title={block.description}
+              onClick={() => addBlock(block.value)}
+            >
+              + {block.label}
+            </button>
+          ))}
+        </div>
+        <label className="poc-block-toolbar__preset">
+          Layout Preset
+          <select value={layoutPresetSelection} onChange={(event) => { setLayoutPresetSelection(event.target.value); updateLayoutPreset(event.target.value); }}>
+            <option value="">Choose preset…</option>
+            {LAYOUT_PRESET_OPTIONS.map((preset) => <option key={preset.value} value={preset.value}>{preset.label}</option>)}
+          </select>
+        </label>
       </div>
       <div className="poc-theme-toolbar" aria-label="Theme and style settings">
         <strong>Theme &amp; Style</strong>
@@ -729,6 +772,7 @@ export function Puck() {
         </section>
       ) : null}
       <PuckEditor
+        key={editorRevision}
         config={config}
         data={editorData}
         ui={{ leftSideBarVisible: true, rightSideBarVisible: true }}

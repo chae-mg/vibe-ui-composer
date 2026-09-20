@@ -1,6 +1,6 @@
 # Puck PoC
 
-Phase 0~9 검증을 위한 Registry 기반 Puck Editor와 독립 Project Renderer 앱입니다.
+Phase 0~10 검증을 위한 Registry 기반 Puck Editor와 독립 Project Renderer 앱입니다.
 
 ## 검증 범위
 
@@ -35,6 +35,10 @@ Phase 0~9 검증을 위한 Registry 기반 Puck Editor와 독립 Project Rendere
 - Clean Light / Clean Dark / Compact Dashboard built-in preset
 - Puck Canvas와 독립 Renderer의 공통 Theme / Style CSS variables
 - Project JSON에 저장되는 theme / style 선택과 새로고침 복원
+- Sidebar Navigation / Page Header / KPI Section / Search + Filter Block Library
+- Blank / Sidebar + Main / Header + Content Layout Preset
+- Block 삽입 시 Fragment Node ID 재생성과 일반 Properties 편집
+- Layout Preset 적용 후 Puck Canvas와 Project Renderer 구조 동기화
 - 알 수 없는 Node Type의 안전한 placeholder 처리
 
 ## 실행

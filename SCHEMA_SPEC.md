@@ -29,6 +29,8 @@ Project JSON은 UI Composer가 소유하는 영구 데이터 모델이다. Puck�
 
 `theme`는 전역 색상 팔레트 ID이며 현재 `clean-light`와 `clean-dark`를 지원한다. `style`은 전역 모서리, 그림자, 밀도, 표면 투명도, 글꼴 조합이며 현재 `clean`, `soft`, `business`, `compact`, `glass`를 지원한다. 내장 Preset은 이 두 필드를 함께 갱신한다. Puck Canvas와 독립 Renderer는 같은 CSS variable resolver로 전역 값을 계산한다.
 
+Block은 저장 시 별도 특수 타입으로 남기지 않고, 삽입 시 일반 Project Node Fragment로 펼친다. Fragment의 모든 Node ID는 현재 Project의 ID 집합과 비교해 새로 생성하며, 삽입된 Node는 기존 Component와 같은 Properties / Renderer 경로를 사용한다. Layout Preset은 Project root의 `children`과 `nodes`를 새 초기 구조로 교체한다.
+
 Layout 컴포넌트의 편집 속성은 각 Node의 `props`에 저장한다. `Container`는 기본적으로 Column Stack이며, `Flex`는 Row / Column과 Wrap, Align, Justify, Gap, Padding, Height Mode를 지원한다. `Grid`는 Columns와 Gap, Align, Justify, Padding, Height Mode를 지원한다. Gap / Padding은 `space.*`, Radius는 `radius.*`, Shadow는 `shadow.*`, 텍스트 스타일은 `typographyRole` token을 우선 사용한다. Section과 Card의 기본 색상은 `theme.surface`, `theme.text`, `theme.border` alias로 저장하고, 사용자가 직접 입력한 raw 색상 값은 Component override로 유지한다. 기존 숫자형 Gap / Padding / Radius와 raw Shadow 값도 resolver가 읽어 기존 저장 JSON을 호환한다. Section과 Card는 Background, Text Color, Border, Radius, Shadow, Typography Role 속성을 지원한다. Puck 편집기와 독립 Renderer는 동일한 속성으로 스타일을 계산한다.
 
 ## Node
