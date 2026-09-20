@@ -5,6 +5,7 @@ import {
   type ProjectDocument,
   type ProjectNode
 } from "./project-schema";
+import { getComponentDefinition } from "./component-registry";
 
 type PuckComponentData = {
   type: string;
@@ -145,7 +146,11 @@ function nodeToPuck(
   nodes: Record<string, ProjectNode>
 ): PuckComponentData {
   const type = PROJECT_TO_PUCK_TYPE[node.type] ?? node.type;
-  const props: Record<string, unknown> = { ...node.props, id: node.id };
+  const props: Record<string, unknown> = {
+    ...(getComponentDefinition(node.type)?.defaultProps ?? {}),
+    ...node.props,
+    id: node.id
+  };
 
   if (node.type === "Card") {
     props.span = node.layout.gridSpan;

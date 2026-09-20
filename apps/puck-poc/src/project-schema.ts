@@ -83,7 +83,16 @@ export function createDefaultProject(): ProjectDocument {
     id: "section-1",
     type: "Section",
     children: ["grid-1"],
-    props: { title: "Dashboard section", tone: "surface" },
+    props: {
+      title: "Dashboard section",
+      tone: "surface",
+      background: "#ffffff",
+      textColor: "#172033",
+      border: "#d8deea",
+      radius: "radius.lg",
+      shadow: "shadow.none",
+      typographyRole: "heading-2"
+    },
     layout: { gridSpan: 12 },
     responsive: {}
   };
@@ -93,8 +102,8 @@ export function createDefaultProject(): ProjectDocument {
     children: ["card-1", "card-2"],
     props: {
       columns: 12,
-      gap: DEFAULT_GRID.desktop.gutter,
-      padding: 16,
+      gap: "space.24",
+      padding: "space.16",
       align: "stretch",
       justify: "stretch",
       heightMode: "auto",
@@ -108,7 +117,16 @@ export function createDefaultProject(): ProjectDocument {
     id: "card-1",
     type: "Card",
     children: [],
-    props: { title: "Revenue", body: "$128,430" },
+    props: {
+      title: "Revenue",
+      body: "$128,430",
+      background: "#ffffff",
+      textColor: "#172033",
+      border: "#dce3ef",
+      radius: "radius.md",
+      shadow: "shadow.sm",
+      typographyRole: "title"
+    },
     layout: { gridSpan: 6 },
     responsive: { tablet: { gridSpan: 6 }, mobile: { gridSpan: 4 } }
   };
@@ -116,7 +134,16 @@ export function createDefaultProject(): ProjectDocument {
     id: "card-2",
     type: "Card",
     children: [],
-    props: { title: "Active users", body: "8,492" },
+    props: {
+      title: "Active users",
+      body: "8,492",
+      background: "#ffffff",
+      textColor: "#172033",
+      border: "#dce3ef",
+      radius: "radius.md",
+      shadow: "shadow.sm",
+      typographyRole: "title"
+    },
     layout: { gridSpan: 6 },
     responsive: { tablet: { gridSpan: 6 }, mobile: { gridSpan: 4 } }
   };

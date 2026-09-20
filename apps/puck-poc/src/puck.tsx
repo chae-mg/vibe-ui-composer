@@ -39,26 +39,37 @@ import {
   type LayoutWrap
 } from "./layout-utils";
 import { getAppearanceStyle, type AppearanceShadow } from "./appearance-utils";
+import {
+  RADIUS_OPTIONS,
+  SHADOW_OPTIONS,
+  SPACING_OPTIONS,
+  TYPOGRAPHY_OPTIONS,
+  getTypographyStyle,
+  resolveSpacing,
+  type SpacingToken,
+  type TypographyRole
+} from "./design-tokens";
 
 const STORAGE_KEY = "ui-composer-puck-poc";
 
-type HeadingProps = { text: string; level: "h1" | "h2" | "h3" };
-type TextProps = { text: string };
-type ButtonProps = { label: string; variant: "primary" | "secondary" };
+type HeadingProps = { text: string; level: "h1" | "h2" | "h3"; typographyRole?: TypographyRole };
+type TextProps = { text: string; typographyRole?: TypographyRole };
+type ButtonProps = { label: string; variant: "primary" | "secondary"; typographyRole?: TypographyRole };
 type SectionProps = {
   title: string;
   tone: "surface" | "accent";
   background?: string;
   textColor?: string;
   border?: string;
-  radius?: number;
+  radius?: number | string;
   shadow?: AppearanceShadow;
+  typographyRole?: TypographyRole;
   content: Slot;
 };
 type GridProps = {
   columns: number;
-  gap: number;
-  padding: number;
+  gap: number | SpacingToken | string;
+  padding: number | SpacingToken | string;
   align: LayoutAlign;
   justify: LayoutJustify;
   heightMode: LayoutHeightMode;
@@ -75,8 +86,9 @@ type CardProps = {
   background?: string;
   textColor?: string;
   border?: string;
-  radius?: number;
+  radius?: number | string;
   shadow?: AppearanceShadow;
+  typographyRole?: TypographyRole;
   content: Slot;
 };
 type ContainerProps = {
@@ -84,8 +96,8 @@ type ContainerProps = {
   wrap: LayoutWrap;
   align: LayoutAlign;
   justify: LayoutJustify;
-  gap: number;
-  padding: number;
+  gap: number | SpacingToken | string;
+  padding: number | SpacingToken | string;
   heightMode: LayoutHeightMode;
   height: number;
   content: Slot;
@@ -151,19 +163,20 @@ const config: Config<Components> = {
             { label: "Heading 2", value: "h2" },
             { label: "Heading 3", value: "h3" }
           ]
-        }
+        },
+        typographyRole: { type: "select", options: TYPOGRAPHY_OPTIONS }
       },
       defaultProps: registryProps("Heading") as HeadingProps,
-      render: ({ text, level }: HeadingProps) => {
+      render: ({ text, level, typographyRole }: HeadingProps) => {
         const Heading = level;
-        return <Heading className="poc-heading">{text}</Heading>;
+        return <Heading className="poc-heading" style={getTypographyStyle(typographyRole, "heading-1") as CSSProperties}>{text}</Heading>;
       }
     },
     TextBlock: {
       label: getComponentDefinition("Text")?.label ?? "Text",
-      fields: { text: { type: "textarea" } },
+      fields: { text: { type: "textarea" }, typographyRole: { type: "select", options: TYPOGRAPHY_OPTIONS } },
       defaultProps: registryProps("Text") as TextProps,
-      render: ({ text }: TextProps) => <p className="poc-text">{text}</p>
+      render: ({ text, typographyRole }: TextProps) => <p className="poc-text" style={getTypographyStyle(typographyRole, "body") as CSSProperties}>{text}</p>
     },
     ButtonBlock: {
       label: getComponentDefinition("Button")?.label ?? "Button",
@@ -175,11 +188,12 @@ const config: Config<Components> = {
             { label: "Primary", value: "primary" },
             { label: "Secondary", value: "secondary" }
           ]
-        }
+        },
+        typographyRole: { type: "select", options: TYPOGRAPHY_OPTIONS }
       },
       defaultProps: registryProps("Button") as ButtonProps,
-      render: ({ label, variant }: ButtonProps) => (
-        <button className={"poc-button poc-button--" + variant} type="button">
+      render: ({ label, variant, typographyRole }: ButtonProps) => (
+        <button className={"poc-button poc-button--" + variant} style={getTypographyStyle(typographyRole, "body") as CSSProperties} type="button">
           {label}
         </button>
       )
@@ -198,17 +212,18 @@ const config: Config<Components> = {
         background: { type: "text" },
         textColor: { type: "text" },
         border: { type: "text" },
-        radius: { type: "number", min: 0, max: 48 },
-        shadow: { type: "select", options: [{ label: "None", value: "none" }, { label: "Small", value: "sm" }, { label: "Medium", value: "md" }, { label: "Large", value: "lg" }] },
+        radius: { type: "select", options: RADIUS_OPTIONS },
+        shadow: { type: "select", options: SHADOW_OPTIONS },
+        typographyRole: { type: "select", options: TYPOGRAPHY_OPTIONS },
         content: {
           type: "slot",
           allow: slotAllow("Section")
         }
       },
       defaultProps: registryProps("Section") as SectionProps,
-      render: ({ title, tone, background, textColor, border, radius, shadow, content: Content }) => (
+      render: ({ title, tone, background, textColor, border, radius, shadow, typographyRole, content: Content }) => (
         <section className={"poc-section poc-section--" + tone} style={getAppearanceStyle({ background, textColor, border, radius, shadow }) as CSSProperties}>
-          <h2>{title}</h2>
+          <h2 style={getTypographyStyle(typographyRole, "heading-2") as CSSProperties}>{title}</h2>
           <Content className="poc-slot" />
         </section>
       )
@@ -217,8 +232,8 @@ const config: Config<Components> = {
       label: getComponentDefinition("Grid")?.label ?? "Grid",
       fields: {
         columns: { type: "number", min: 1, max: 24 },
-        gap: { type: "number", min: 0, max: 96 },
-        padding: { type: "number", min: 0, max: 96 },
+        gap: { type: "select", options: SPACING_OPTIONS },
+        padding: { type: "select", options: SPACING_OPTIONS },
         align: { type: "select", options: [{ label: "Stretch", value: "stretch" }, { label: "Start", value: "start" }, { label: "Center", value: "center" }, { label: "End", value: "end" }] },
         justify: { type: "select", options: [{ label: "Stretch", value: "stretch" }, { label: "Start", value: "start" }, { label: "Center", value: "center" }, { label: "End", value: "end" }] },
         heightMode: { type: "select", options: [{ label: "Auto", value: "auto" }, { label: "Fixed", value: "fixed" }, { label: "Min height", value: "min" }, { label: "Fill", value: "fill" }] },
@@ -237,11 +252,13 @@ const config: Config<Components> = {
       },
       defaultProps: registryProps("Grid") as GridProps,
       render: ({ columns, gap, padding, align, justify, heightMode, height, showOverlay, content: Content }) => {
+        const resolvedGap = resolveSpacing(gap, 24);
+        const resolvedPadding = resolveSpacing(padding, 16);
         const gridStyle = {
-          ...getGridLayoutStyle({ columns, gap, padding, align, justify, heightMode, height }),
+          ...getGridLayoutStyle({ columns, gap: resolvedGap, padding: resolvedPadding, align, justify, heightMode, height }),
           "--poc-grid-columns": columns,
-          "--poc-grid-gap": `${gap}px`,
-          "--poc-grid-padding": `${padding}px`
+          "--poc-grid-gap": `${resolvedGap}px`,
+          "--poc-grid-padding": `${resolvedPadding}px`
         } as CSSProperties;
 
         return (
@@ -270,12 +287,13 @@ const config: Config<Components> = {
         background: { type: "text" },
         textColor: { type: "text" },
         border: { type: "text" },
-        radius: { type: "number", min: 0, max: 48 },
-        shadow: { type: "select", options: [{ label: "None", value: "none" }, { label: "Small", value: "sm" }, { label: "Medium", value: "md" }, { label: "Large", value: "lg" }] },
+        radius: { type: "select", options: RADIUS_OPTIONS },
+        shadow: { type: "select", options: SHADOW_OPTIONS },
+        typographyRole: { type: "select", options: TYPOGRAPHY_OPTIONS },
         content: { type: "slot", allow: slotAllow("Card") }
       },
       defaultProps: registryProps("Card") as CardProps,
-      render: ({ title, body, span, tabletSpan, mobileSpan, background, textColor, border, radius, shadow, content: Content, puck }) => (
+      render: ({ title, body, span, tabletSpan, mobileSpan, background, textColor, border, radius, shadow, typographyRole, content: Content, puck }) => (
         <article
           ref={puck.dragRef}
           className="poc-card"
@@ -286,8 +304,8 @@ const config: Config<Components> = {
             ...getAppearanceStyle({ background, textColor, border, radius, shadow })
           } as CSSProperties}
         >
-          <strong>{title}</strong>
-          <span className="poc-card-value">{body}</span>
+          <strong style={getTypographyStyle(typographyRole, "title") as CSSProperties}>{title}</strong>
+          <span className="poc-card-value" style={getTypographyStyle(typographyRole, "body-large") as CSSProperties}>{body}</span>
           <Content className="poc-card-content poc-slot" />
         </article>
       )
@@ -299,15 +317,15 @@ const config: Config<Components> = {
         wrap: { type: "select", options: [{ label: "No wrap", value: "nowrap" }, { label: "Wrap", value: "wrap" }] },
         align: { type: "select", options: [{ label: "Stretch", value: "stretch" }, { label: "Start", value: "start" }, { label: "Center", value: "center" }, { label: "End", value: "end" }] },
         justify: { type: "select", options: [{ label: "Start", value: "start" }, { label: "Center", value: "center" }, { label: "End", value: "end" }, { label: "Between", value: "between" }] },
-        gap: { type: "number", min: 0, max: 96 },
-        padding: { type: "number", min: 0, max: 96 },
+        gap: { type: "select", options: SPACING_OPTIONS },
+        padding: { type: "select", options: SPACING_OPTIONS },
         heightMode: { type: "select", options: [{ label: "Auto", value: "auto" }, { label: "Fixed", value: "fixed" }, { label: "Min height", value: "min" }, { label: "Fill", value: "fill" }] },
         height: { type: "number", min: 0, max: 1200 },
         content: { type: "slot", allow: slotAllow("Container") }
       },
       defaultProps: registryProps("Container") as ContainerProps,
-      render: ({ direction = "column", wrap = "nowrap", align = "stretch", justify = "start", gap = 16, padding = 16, heightMode = "auto", height = 240, content: Content }) => (
-        <div className="poc-renderer-container" style={getFlexLayoutStyle({ direction, wrap, align, justify, gap, padding, heightMode, height }) as CSSProperties}><Content className="poc-slot" /></div>
+      render: ({ direction = "column", wrap = "nowrap", align = "stretch", justify = "start", gap = "space.16", padding = "space.16", heightMode = "auto", height = 240, content: Content }) => (
+        <div className="poc-renderer-container" style={getFlexLayoutStyle({ direction, wrap, align, justify, gap: resolveSpacing(gap, 16), padding: resolveSpacing(padding, 16), heightMode, height }) as CSSProperties}><Content className="poc-slot" /></div>
       )
     },
     FlexBlock: {
@@ -317,15 +335,15 @@ const config: Config<Components> = {
         wrap: { type: "select", options: [{ label: "No wrap", value: "nowrap" }, { label: "Wrap", value: "wrap" }, { label: "Wrap reverse", value: "wrap-reverse" }] },
         align: { type: "select", options: [{ label: "Stretch", value: "stretch" }, { label: "Start", value: "start" }, { label: "Center", value: "center" }, { label: "End", value: "end" }] },
         justify: { type: "select", options: [{ label: "Start", value: "start" }, { label: "Center", value: "center" }, { label: "End", value: "end" }, { label: "Between", value: "between" }] },
-        gap: { type: "number", min: 0, max: 96 },
-        padding: { type: "number", min: 0, max: 96 },
+        gap: { type: "select", options: SPACING_OPTIONS },
+        padding: { type: "select", options: SPACING_OPTIONS },
         heightMode: { type: "select", options: [{ label: "Auto", value: "auto" }, { label: "Fixed", value: "fixed" }, { label: "Min height", value: "min" }, { label: "Fill", value: "fill" }] },
         height: { type: "number", min: 0, max: 1200 },
         content: { type: "slot", allow: slotAllow("Flex") }
       },
       defaultProps: registryProps("Flex") as FlexProps,
-      render: ({ direction = "row", wrap = "nowrap", align = "stretch", justify = "start", gap = 16, padding = 0, heightMode = "auto", height = 240, content: Content }) => (
-        <div className="poc-renderer-flex" style={getFlexLayoutStyle({ direction, wrap, align, justify, gap, padding, heightMode, height }) as CSSProperties}><Content className="poc-slot" /></div>
+      render: ({ direction = "row", wrap = "nowrap", align = "stretch", justify = "start", gap = "space.16", padding = "space.0", heightMode = "auto", height = 240, content: Content }) => (
+        <div className="poc-renderer-flex" style={getFlexLayoutStyle({ direction, wrap, align, justify, gap: resolveSpacing(gap, 16), padding: resolveSpacing(padding, 0), heightMode, height }) as CSSProperties}><Content className="poc-slot" /></div>
       )
     },
     InputBlock: {
@@ -396,7 +414,7 @@ const PROPERTY_TABS: PropertyTab[] = ["Layout", "Size", "Spacing", "Typography",
 const LAYOUT_PROPERTIES = new Set(["direction", "wrap", "align", "justify", "columns", "showOverlay"]);
 const SIZE_PROPERTIES = new Set(["heightMode", "height", "span", "tabletSpan", "mobileSpan"]);
 const SPACING_PROPERTIES = new Set(["gap", "padding"]);
-const TYPOGRAPHY_PROPERTIES = new Set(["text", "level", "title", "label", "body", "variant", "tone", "orientation", "options", "columns"]);
+const TYPOGRAPHY_PROPERTIES = new Set(["text", "level", "title", "label", "body", "variant", "tone", "orientation", "options", "columns", "typographyRole"]);
 const APPEARANCE_PROPERTIES = new Set(["background", "textColor", "border", "radius", "shadow"]);
 
 function getPropertyTab(name: string): PropertyTab {
@@ -597,10 +615,10 @@ export function Puck() {
   return (
     <div className="poc-shell">
       <div className="poc-status" aria-live="polite">
-        <span>Phase 7 · properties panel validation</span>
+        <span>Phase 8 · design token validation</span>
         <span>
           {validationPassed
-            ? `Properties ✓ · Layout ✓ · Grid ✓ · Canvas DnD ✓ · Registry ✓ · ${componentRegistry.length} components · ${Object.keys(currentProject.nodes).length} nodes`
+            ? `Tokens ✓ · Properties ✓ · Layout ✓ · Grid ✓ · Canvas DnD ✓ · Registry ✓ · ${componentRegistry.length} components · ${Object.keys(currentProject.nodes).length} nodes`
             : "Schema adapter needs review"}
           {savedAt ? " · Saved " + savedAt : ""}
         </span>

@@ -1,5 +1,6 @@
 import { canAcceptChild, getComponentDefinition } from "./component-registry";
 import type { Breakpoint, GridSettings, ProjectDocument, ProjectNode } from "./project-schema";
+import { spacingTokenFor } from "./design-tokens";
 
 function touch(project: ProjectDocument, nodes: Record<string, ProjectNode>): ProjectDocument {
   return { ...project, updatedAt: new Date().toISOString(), nodes };
@@ -124,7 +125,7 @@ export function updateGridSettings(
             )
           : clampGridSpan(node.layout.gridSpan, nextGrid.columns);
         const props = node.type === "Grid"
-          ? { ...node.props, columns: nextGrid.columns, gap: nextGrid.gutter }
+          ? { ...node.props, columns: nextGrid.columns, gap: spacingTokenFor(nextGrid.gutter) }
           : node.props;
         return [id, { ...node, props, layout: { ...node.layout, gridSpan: span } }];
       })

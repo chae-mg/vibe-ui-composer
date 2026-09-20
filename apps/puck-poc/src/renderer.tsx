@@ -17,6 +17,7 @@ import {
   type LayoutWrap
 } from "./layout-utils";
 import { getAppearanceStyle, type AppearanceShadow } from "./appearance-utils";
+import { getTypographyStyle, resolveSpacing } from "./design-tokens";
 
 export type ProjectRendererProps = {
   project: ProjectDocument;
@@ -52,8 +53,8 @@ function layoutStyleProps(node: ProjectNode) {
     wrap: stringProp(node, "wrap", "nowrap") as LayoutWrap,
     align: stringProp(node, "align", "stretch") as LayoutAlign,
     justify: stringProp(node, "justify", "start") as LayoutJustify,
-    gap: numberProp(node, "gap", 16),
-    padding: numberProp(node, "padding", 0),
+    gap: resolveSpacing(node.props.gap, 16),
+    padding: resolveSpacing(node.props.padding, 0),
     heightMode: stringProp(node, "heightMode", "auto") as LayoutHeightMode,
     height: numberProp(node, "height", 240)
   };
@@ -137,12 +138,12 @@ function NodeView({
             background: stringProp(node, "background", ""),
             textColor: stringProp(node, "textColor", ""),
             border: stringProp(node, "border", ""),
-            radius: numberProp(node, "radius", 16),
+            radius: node.props.radius as number | string,
             shadow: stringProp(node, "shadow", "none") as AppearanceShadow
           }) as CSSProperties}
           data-schema-node={node.id}
         >
-          <h2>{stringProp(node, "title", "Section")}</h2>
+          <h2 style={getTypographyStyle(node.props.typographyRole, "heading-2") as CSSProperties}>{stringProp(node, "title", "Section")}</h2>
           <div className="poc-slot">{children}</div>
         </section>
       );
@@ -150,10 +151,10 @@ function NodeView({
     case "Heading": {
       const level = stringProp(node, "level", "h2");
       const Heading = level === "h1" || level === "h3" ? level : "h2";
-      return <Heading className="poc-heading" data-schema-node={node.id}>{stringProp(node, "text", definition.label)}</Heading>;
+      return <Heading className="poc-heading" style={getTypographyStyle(node.props.typographyRole, level === "h1" ? "heading-1" : level === "h3" ? "heading-3" : "heading-2") as CSSProperties} data-schema-node={node.id}>{stringProp(node, "text", definition.label)}</Heading>;
     }
     case "Container":
-      return <div className="poc-renderer-container" style={getFlexLayoutStyle({ ...layoutStyleProps(node), padding: numberProp(node, "padding", 16) }) as CSSProperties} data-schema-node={node.id}>{children}</div>;
+      return <div className="poc-renderer-container" style={getFlexLayoutStyle({ ...layoutStyleProps(node), padding: resolveSpacing(node.props.padding, 16) }) as CSSProperties} data-schema-node={node.id}>{children}</div>;
     case "Flex": {
       const style = getFlexLayoutStyle({ ...layoutStyleProps(node), direction: stringProp(node, "direction", "row") as LayoutDirection }) as CSSProperties;
       return <div className="poc-renderer-flex" style={style} data-schema-node={node.id}>{children}</div>;
@@ -161,12 +162,13 @@ function NodeView({
     case "Grid": {
       const grid = getGridSettings(project, breakpoint);
       const columns = Math.max(1, numberProp(node, "columns", grid.columns));
-      const gap = Math.max(0, numberProp(node, "gap", grid.gutter));
+      const gap = Math.max(0, resolveSpacing(node.props.gap, grid.gutter));
+      const padding = resolveSpacing(node.props.padding, 16);
       const gridStyle = {
         ...getGridLayoutStyle({
           columns,
           gap,
-          padding: numberProp(node, "padding", 16),
+          padding,
           align: stringProp(node, "align", "stretch") as LayoutAlign,
           justify: stringProp(node, "justify", "stretch") as LayoutJustify,
           heightMode: stringProp(node, "heightMode", "auto") as LayoutHeightMode,
@@ -174,7 +176,7 @@ function NodeView({
         }),
         "--poc-grid-columns": columns,
         "--poc-grid-gap": `${gap}px`,
-        "--poc-grid-padding": `${numberProp(node, "padding", 16)}px`
+        "--poc-grid-padding": `${padding}px`
       } as CSSProperties;
       return (
         <div className="poc-grid poc-renderer-grid" style={gridStyle} data-schema-node={node.id}>
@@ -195,19 +197,19 @@ function NodeView({
           background: stringProp(node, "background", ""),
           textColor: stringProp(node, "textColor", ""),
           border: stringProp(node, "border", ""),
-          radius: numberProp(node, "radius", 12),
+          radius: node.props.radius as number | string,
           shadow: stringProp(node, "shadow", "sm") as AppearanceShadow
         }) }} data-schema-node={node.id}>
-          <strong>{stringProp(node, "title", "Card")}</strong>
-          <span className="poc-card-value">{stringProp(node, "body", "Card content")}</span>
+          <strong style={getTypographyStyle(node.props.typographyRole, "title") as CSSProperties}>{stringProp(node, "title", "Card")}</strong>
+          <span className="poc-card-value" style={getTypographyStyle(node.props.typographyRole, "body") as CSSProperties}>{stringProp(node, "body", "Card content")}</span>
           <div className="poc-card-content poc-slot">{children}</div>
         </article>
       );
     }
     case "Text":
-      return <p className="poc-text" data-schema-node={node.id}>{stringProp(node, "text", "Text")}</p>;
+      return <p className="poc-text" style={getTypographyStyle(node.props.typographyRole, "body") as CSSProperties} data-schema-node={node.id}>{stringProp(node, "text", "Text")}</p>;
     case "Button":
-      return <button className={`poc-button poc-button--${stringProp(node, "variant", "primary")}`} type="button" data-schema-node={node.id}>{stringProp(node, "label", "Button")}</button>;
+      return <button className={`poc-button poc-button--${stringProp(node, "variant", "primary")}`} style={getTypographyStyle(node.props.typographyRole, "body") as CSSProperties} type="button" data-schema-node={node.id}>{stringProp(node, "label", "Button")}</button>;
     case "Input":
       return <input className="poc-input" placeholder={stringProp(node, "placeholder", "Input")} aria-label={stringProp(node, "label", "Input")} data-schema-node={node.id} />;
     case "Select":

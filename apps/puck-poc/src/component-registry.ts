@@ -1,3 +1,14 @@
+import {
+  RADIUS_OPTIONS,
+  SHADOW_OPTIONS,
+  SPACING_OPTIONS,
+  TYPOGRAPHY_OPTIONS,
+  type RadiusToken,
+  type ShadowToken,
+  type SpacingToken,
+  type TypographyRole
+} from "./design-tokens";
+
 export type ComponentType =
   | "Page"
   | "Section"
@@ -80,8 +91,8 @@ export const componentRegistry: ComponentDefinition[] = [
     label: "Section",
     icon: "section",
     category: "layout",
-    defaultProps: { title: "Section", tone: "surface", background: "#ffffff", textColor: "#172033", border: "#d8deea", radius: 16, shadow: "none", content: [] },
-    defaultStyle: { radius: 16, padding: 24 },
+    defaultProps: { title: "Section", tone: "surface", background: "#ffffff", textColor: "#172033", border: "#d8deea", radius: "radius.lg" as RadiusToken, shadow: "shadow.none" as ShadowToken, typographyRole: "heading-2" as TypographyRole, content: [] },
+    defaultStyle: { radius: "radius.lg", padding: "space.24" },
     variants: ["surface", "accent"],
     allowedChildren: ["Heading", "Text", "Button", "Container", "Flex", "Grid", "Card", "Input", "Select", "Badge", "Divider", "Table"],
     canHaveChildren: true,
@@ -99,8 +110,9 @@ export const componentRegistry: ComponentDefinition[] = [
       background: { type: "text", label: "Background" },
       textColor: { type: "text", label: "Text color" },
       border: { type: "text", label: "Border color" },
-      radius: { type: "number", label: "Radius", min: 0, max: 48 },
-      shadow: { type: "select", label: "Shadow", options: [{ label: "None", value: "none" }, { label: "Small", value: "sm" }, { label: "Medium", value: "md" }, { label: "Large", value: "lg" }] },
+      radius: { type: "select", label: "Radius", options: RADIUS_OPTIONS },
+      shadow: { type: "select", label: "Shadow", options: SHADOW_OPTIONS },
+      typographyRole: { type: "select", label: "Typography role", options: TYPOGRAPHY_OPTIONS },
       content: { type: "slot", allow: ["Text", "Button", "Container", "Flex", "Grid", "Card", "Input", "Select", "Badge", "Divider", "Table"] }
     }
   },
@@ -114,8 +126,8 @@ export const componentRegistry: ComponentDefinition[] = [
       wrap: "nowrap",
       align: "stretch",
       justify: "start",
-      gap: 16,
-      padding: 16,
+      gap: "space.16" as SpacingToken,
+      padding: "space.16" as SpacingToken,
       heightMode: "auto",
       height: 240,
       content: []
@@ -130,8 +142,8 @@ export const componentRegistry: ComponentDefinition[] = [
       wrap: { type: "select", label: "Wrap", options: [{ label: "No wrap", value: "nowrap" }, { label: "Wrap", value: "wrap" }] },
       align: { type: "select", label: "Align", options: [{ label: "Stretch", value: "stretch" }, { label: "Start", value: "start" }, { label: "Center", value: "center" }, { label: "End", value: "end" }] },
       justify: { type: "select", label: "Justify", options: [{ label: "Start", value: "start" }, { label: "Center", value: "center" }, { label: "End", value: "end" }, { label: "Between", value: "between" }] },
-      gap: { type: "number", label: "Gap", min: 0, max: 96 },
-      padding: { type: "number", label: "Padding", min: 0, max: 96 },
+      gap: { type: "select", label: "Gap", options: SPACING_OPTIONS },
+      padding: { type: "select", label: "Padding", options: SPACING_OPTIONS },
       heightMode: { type: "select", label: "Height", options: [{ label: "Auto", value: "auto" }, { label: "Fixed", value: "fixed" }, { label: "Min height", value: "min" }, { label: "Fill", value: "fill" }] },
       height: { type: "number", label: "Height value", min: 0, max: 1200 },
       content: { type: "slot", allow: ["Text", "Button", "Flex", "Grid", "Card", "Input", "Select", "Badge", "Divider", "Table"] }
@@ -142,7 +154,7 @@ export const componentRegistry: ComponentDefinition[] = [
     label: "Flex",
     icon: "flex",
     category: "layout",
-    defaultProps: { direction: "row", wrap: "nowrap", align: "stretch", justify: "start", gap: 16, padding: 0, heightMode: "auto", height: 240, content: [] },
+    defaultProps: { direction: "row", wrap: "nowrap", align: "stretch", justify: "start", gap: "space.16" as SpacingToken, padding: "space.0" as SpacingToken, heightMode: "auto", height: 240, content: [] },
     defaultStyle: {},
     variants: ["row", "column"],
     allowedChildren: ["Text", "Button", "Card", "Input", "Select", "Badge", "Divider", "Table"],
@@ -153,8 +165,8 @@ export const componentRegistry: ComponentDefinition[] = [
       wrap: { type: "select", label: "Wrap", options: [{ label: "No wrap", value: "nowrap" }, { label: "Wrap", value: "wrap" }, { label: "Wrap reverse", value: "wrap-reverse" }] },
       align: { type: "select", label: "Align", options: [{ label: "Stretch", value: "stretch" }, { label: "Start", value: "start" }, { label: "Center", value: "center" }, { label: "End", value: "end" }] },
       justify: { type: "select", label: "Justify", options: [{ label: "Start", value: "start" }, { label: "Center", value: "center" }, { label: "End", value: "end" }, { label: "Between", value: "between" }] },
-      gap: { type: "number", label: "Gap", min: 0, max: 96 },
-      padding: { type: "number", label: "Padding", min: 0, max: 96 },
+      gap: { type: "select", label: "Gap", options: SPACING_OPTIONS },
+      padding: { type: "select", label: "Padding", options: SPACING_OPTIONS },
       heightMode: { type: "select", label: "Height", options: [{ label: "Auto", value: "auto" }, { label: "Fixed", value: "fixed" }, { label: "Min height", value: "min" }, { label: "Fill", value: "fill" }] },
       height: { type: "number", label: "Height value", min: 0, max: 1200 },
       content: { type: "slot", allow: ["Text", "Button", "Card", "Input", "Select", "Badge", "Divider", "Table"] }
@@ -165,7 +177,7 @@ export const componentRegistry: ComponentDefinition[] = [
     label: "Grid",
     icon: "grid",
     category: "layout",
-    defaultProps: { columns: 12, gap: 24, padding: 16, align: "stretch", justify: "stretch", heightMode: "auto", height: 240, showOverlay: true, content: [] },
+    defaultProps: { columns: 12, gap: "space.24" as SpacingToken, padding: "space.16" as SpacingToken, align: "stretch", justify: "stretch", heightMode: "auto", height: 240, showOverlay: true, content: [] },
     defaultStyle: {},
     variants: [],
     allowedChildren: ["Card", "Heading", "Text", "Button", "Input", "Select", "Badge", "Divider", "Table"],
@@ -173,8 +185,8 @@ export const componentRegistry: ComponentDefinition[] = [
     resizeRules: { minSpan: 1, maxSpan: 12, snap: "grid" },
     propertySchema: {
       columns: { type: "number", label: "Columns", min: 1, max: 24 },
-      gap: { type: "number", label: "Gap", min: 0, max: 96 },
-      padding: { type: "number", label: "Padding", min: 0, max: 96 },
+      gap: { type: "select", label: "Gap", options: SPACING_OPTIONS },
+      padding: { type: "select", label: "Padding", options: SPACING_OPTIONS },
       align: { type: "select", label: "Align", options: [{ label: "Stretch", value: "stretch" }, { label: "Start", value: "start" }, { label: "Center", value: "center" }, { label: "End", value: "end" }] },
       justify: { type: "select", label: "Justify", options: [{ label: "Stretch", value: "stretch" }, { label: "Start", value: "start" }, { label: "Center", value: "center" }, { label: "End", value: "end" }] },
       heightMode: { type: "select", label: "Height", options: [{ label: "Auto", value: "auto" }, { label: "Fixed", value: "fixed" }, { label: "Min height", value: "min" }, { label: "Fill", value: "fill" }] },
@@ -187,8 +199,8 @@ export const componentRegistry: ComponentDefinition[] = [
     label: "Card",
     icon: "card",
     category: "layout",
-    defaultProps: { title: "Card", body: "Card content", span: 6, tabletSpan: 6, mobileSpan: 4, background: "#ffffff", textColor: "#172033", border: "#dce3ef", radius: 12, shadow: "sm", content: [] },
-    defaultStyle: { radius: 12, padding: 16 },
+    defaultProps: { title: "Card", body: "Card content", span: 6, tabletSpan: 6, mobileSpan: 4, background: "#ffffff", textColor: "#172033", border: "#dce3ef", radius: "radius.md" as RadiusToken, shadow: "shadow.sm" as ShadowToken, typographyRole: "title" as TypographyRole, content: [] },
+    defaultStyle: { radius: "radius.md", padding: "space.16" },
     variants: [],
     allowedChildren: ["Text", "Button", "Badge", "Divider"],
     canHaveChildren: true,
@@ -202,8 +214,9 @@ export const componentRegistry: ComponentDefinition[] = [
       background: { type: "text", label: "Background" },
       textColor: { type: "text", label: "Text color" },
       border: { type: "text", label: "Border color" },
-      radius: { type: "number", label: "Radius", min: 0, max: 48 },
-      shadow: { type: "select", label: "Shadow", options: [{ label: "None", value: "none" }, { label: "Small", value: "sm" }, { label: "Medium", value: "md" }, { label: "Large", value: "lg" }] },
+      radius: { type: "select", label: "Radius", options: RADIUS_OPTIONS },
+      shadow: { type: "select", label: "Shadow", options: SHADOW_OPTIONS },
+      typographyRole: { type: "select", label: "Typography role", options: TYPOGRAPHY_OPTIONS },
       content: { type: "slot", allow: ["Text", "Button", "Badge", "Divider"] }
     }
   },
@@ -212,7 +225,7 @@ export const componentRegistry: ComponentDefinition[] = [
     label: "Heading",
     icon: "heading",
     category: "content",
-    defaultProps: { text: "Build your interface", level: "h1" },
+    defaultProps: { text: "Build your interface", level: "h1", typographyRole: "heading-1" as TypographyRole },
     defaultStyle: {},
     variants: ["h1", "h2", "h3"],
     allowedChildren: [],
@@ -220,7 +233,8 @@ export const componentRegistry: ComponentDefinition[] = [
     resizeRules: { minSpan: 1, maxSpan: 12, snap: "grid" },
     propertySchema: {
       text: { type: "text", label: "Text" },
-      level: { type: "select", label: "Level", options: [{ label: "Heading 1", value: "h1" }, { label: "Heading 2", value: "h2" }, { label: "Heading 3", value: "h3" }] }
+      level: { type: "select", label: "Level", options: [{ label: "Heading 1", value: "h1" }, { label: "Heading 2", value: "h2" }, { label: "Heading 3", value: "h3" }] },
+      typographyRole: { type: "select", label: "Typography role", options: TYPOGRAPHY_OPTIONS }
     }
   },
   {
@@ -228,20 +242,20 @@ export const componentRegistry: ComponentDefinition[] = [
     label: "Text",
     icon: "text",
     category: "content",
-    defaultProps: { text: "Write something useful." },
+    defaultProps: { text: "Write something useful.", typographyRole: "body" as TypographyRole },
     defaultStyle: {},
     variants: [],
     allowedChildren: [],
     canHaveChildren: false,
     resizeRules: { minSpan: 1, maxSpan: 12, snap: "grid" },
-    propertySchema: { text: { type: "textarea", label: "Text" } }
+    propertySchema: { text: { type: "textarea", label: "Text" }, typographyRole: { type: "select", label: "Typography role", options: TYPOGRAPHY_OPTIONS } }
   },
   {
     type: "Button",
     label: "Button",
     icon: "button",
     category: "content",
-    defaultProps: { label: "Continue", variant: "primary" },
+    defaultProps: { label: "Continue", variant: "primary", typographyRole: "body" as TypographyRole },
     defaultStyle: { radius: 8 },
     variants: ["primary", "secondary"],
     allowedChildren: [],
@@ -249,7 +263,8 @@ export const componentRegistry: ComponentDefinition[] = [
     resizeRules: { minSpan: 1, maxSpan: 12, snap: "grid" },
     propertySchema: {
       label: { type: "text", label: "Label" },
-      variant: { type: "select", label: "Variant", options: [{ label: "Primary", value: "primary" }, { label: "Secondary", value: "secondary" }] }
+      variant: { type: "select", label: "Variant", options: [{ label: "Primary", value: "primary" }, { label: "Secondary", value: "secondary" }] },
+      typographyRole: { type: "select", label: "Typography role", options: TYPOGRAPHY_OPTIONS }
     }
   },
   {
