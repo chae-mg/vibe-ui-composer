@@ -138,7 +138,7 @@ function NodeView({
             background: stringProp(node, "background", ""),
             textColor: stringProp(node, "textColor", ""),
             border: stringProp(node, "border", ""),
-            radius: node.props.radius as number | string,
+            radius: typeof node.props.radius === "number" || typeof node.props.radius === "string" ? node.props.radius : 16,
             shadow: stringProp(node, "shadow", "none") as AppearanceShadow
           }) as CSSProperties}
           data-schema-node={node.id}
@@ -197,11 +197,11 @@ function NodeView({
           background: stringProp(node, "background", ""),
           textColor: stringProp(node, "textColor", ""),
           border: stringProp(node, "border", ""),
-          radius: node.props.radius as number | string,
+          radius: typeof node.props.radius === "number" || typeof node.props.radius === "string" ? node.props.radius : 12,
           shadow: stringProp(node, "shadow", "sm") as AppearanceShadow
         }) }} data-schema-node={node.id}>
           <strong style={getTypographyStyle(node.props.typographyRole, "title") as CSSProperties}>{stringProp(node, "title", "Card")}</strong>
-          <span className="poc-card-value" style={getTypographyStyle(node.props.typographyRole, "body") as CSSProperties}>{stringProp(node, "body", "Card content")}</span>
+          <span className="poc-card-value" style={getTypographyStyle(node.props.typographyRole, "body-large") as CSSProperties}>{stringProp(node, "body", "Card content")}</span>
           <div className="poc-card-content poc-slot">{children}</div>
         </article>
       );
