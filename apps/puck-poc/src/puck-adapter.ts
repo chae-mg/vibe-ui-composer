@@ -1,6 +1,8 @@
 import type { Data } from "@puckeditor/core";
 import {
   DEFAULT_GRID,
+  getGridSettings,
+  getResponsiveGridSpan,
   PROJECT_SCHEMA_VERSION,
   type ProjectDocument,
   type ProjectNode
@@ -91,12 +93,21 @@ export function puckDataToProject(
         : `generated-${generatedId++}`;
     const { children, cleanProps } = collectSlotChildren(props, visit);
     const gridSpan = getNumber(cleanProps.span, 12);
-    const mobileSpan = getNumber(cleanProps.mobileSpan, gridSpan);
-    const tabletSpan = getNumber(cleanProps.tabletSpan, gridSpan);
+    const fallbackTabletColumns = baseProject?.grid?.tablet?.columns ?? DEFAULT_GRID.tablet.columns;
+    const fallbackMobileColumns = baseProject?.grid?.mobile?.columns ?? DEFAULT_GRID.mobile.columns;
+    const fallbackTabletSpan = Math.min(fallbackTabletColumns, gridSpan);
+    const fallbackMobileSpan = Math.min(fallbackMobileColumns, gridSpan);
+    const mobileSpan = getNumber(cleanProps.smallSpan ?? cleanProps.mobileSpan, fallbackMobileSpan);
+    const tabletSpan = getNumber(cleanProps.tabletSpan, fallbackTabletSpan);
 
     delete cleanProps.span;
+    delete cleanProps.smallSpan;
     delete cleanProps.mobileSpan;
     delete cleanProps.tabletSpan;
+
+    const responsive: ProjectNode["responsive"] = {};
+    if (tabletSpan !== fallbackTabletSpan) responsive.tablet = { gridSpan: tabletSpan };
+    if (mobileSpan !== fallbackMobileSpan) responsive.mobile = { gridSpan: mobileSpan };
 
     nodes[id] = {
       id,
@@ -104,10 +115,7 @@ export function puckDataToProject(
       children,
       props: cleanProps,
       layout: { gridSpan },
-      responsive: {
-        tablet: { gridSpan: tabletSpan },
-        mobile: { gridSpan: mobileSpan }
-      }
+      responsive
     };
     return id;
   };
@@ -128,6 +136,26 @@ export function puckDataToProject(
     responsive: {}
   };
 
+  const gridNode = Object.values(nodes).find((node) => node.type === "Grid");
+  const gridProps = gridNode?.props ?? {};
+  const baseGrid = baseProject?.grid ?? DEFAULT_GRID;
+  const grid = {
+    desktop: {
+      ...baseGrid.desktop,
+      columns: getNumber(gridProps.columns, baseGrid.desktop.columns)
+    },
+    tablet: {
+      ...baseGrid.tablet,
+      columns: getNumber(gridProps.tabletColumns, baseGrid.tablet.columns),
+      gutter: getNumber(gridProps.tabletGutter, baseGrid.tablet.gutter)
+    },
+    mobile: {
+      ...baseGrid.mobile,
+      columns: getNumber(gridProps.mobileColumns, baseGrid.mobile.columns),
+      gutter: getNumber(gridProps.mobileGutter, baseGrid.mobile.gutter)
+    }
+  };
+
   return {
     schemaVersion: PROJECT_SCHEMA_VERSION,
     id: baseProject?.id ?? "puck-poc-project",
@@ -135,7 +163,7 @@ export function puckDataToProject(
     createdAt: baseProject?.createdAt ?? now,
     updatedAt: now,
     rootId,
-    grid: baseProject?.grid ?? DEFAULT_GRID,
+    grid,
     theme: typeof rootProps.theme === "string" ? rootProps.theme : baseProject?.theme ?? "clean-light",
     style: typeof rootProps.style === "string" ? rootProps.style : baseProject?.style ?? "clean",
     nodes
@@ -144,7 +172,8 @@ export function puckDataToProject(
 
 function nodeToPuck(
   node: ProjectNode,
-  nodes: Record<string, ProjectNode>
+  nodes: Record<string, ProjectNode>,
+  project: ProjectDocument
 ): PuckComponentData {
   const type = PROJECT_TO_PUCK_TYPE[node.type] ?? node.type;
   const props: Record<string, unknown> = {
@@ -154,16 +183,28 @@ function nodeToPuck(
   };
 
   if (node.type === "Card") {
-    props.span = node.layout.gridSpan;
-    props.tabletSpan = node.responsive.tablet?.gridSpan ?? node.layout.gridSpan;
-    props.mobileSpan = node.responsive.mobile?.gridSpan ?? node.layout.gridSpan;
+    const desktopSpan = getNumber(node.layout.gridSpan, 12);
+    const tabletColumns = getNumber(getGridSettings(project, "tablet").columns, DEFAULT_GRID.tablet.columns);
+    const mobileColumns = getNumber(getGridSettings(project, "mobile").columns, DEFAULT_GRID.mobile.columns);
+    const tabletSpan = getNumber(node.responsive.tablet?.gridSpan, desktopSpan);
+    const mobileSpan = getNumber(node.responsive.mobile?.gridSpan, desktopSpan);
+    props.span = desktopSpan;
+    props.tabletSpan = Math.min(tabletColumns, tabletSpan);
+    props.smallSpan = Math.min(mobileColumns, mobileSpan);
+  }
+
+  if (node.type === "Grid") {
+    props.tabletColumns = getGridSettings(project, "tablet").columns;
+    props.mobileColumns = getGridSettings(project, "mobile").columns;
+    props.tabletGutter = getGridSettings(project, "tablet").gutter;
+    props.mobileGutter = getGridSettings(project, "mobile").gutter;
   }
 
   if (node.children.length > 0) {
     props.content = node.children
       .map((childId) => nodes[childId])
       .filter((child): child is ProjectNode => Boolean(child))
-      .map((child) => nodeToPuck(child, nodes));
+      .map((child) => nodeToPuck(child, nodes, project));
   }
 
   return { type, props };
@@ -176,13 +217,15 @@ export function projectToPuckData(project: ProjectDocument): Data {
   const content = root.children
     .map((childId) => project.nodes[childId])
     .filter((node): node is ProjectNode => Boolean(node))
-    .map((node) => nodeToPuck(node, project.nodes));
+    .map((node) => nodeToPuck(node, project.nodes, project));
 
   const rootData = {
     props: {
       ...root.props,
       title: project.name,
       gridMargin: project.grid.desktop.margin,
+      tabletGridMargin: project.grid.tablet.margin,
+      mobileGridMargin: project.grid.mobile.margin,
       theme: project.theme,
       style: project.style
     }
@@ -204,7 +247,7 @@ export function validateProjectRoundTrip(project: ProjectDocument) {
     validProject: Boolean(roundTrip.rootId && roundTrip.nodes[roundTrip.rootId]),
     nestedNodes: Boolean(root?.children.length && nestedNodeCount >= 4),
     gridSpan: gridNode?.layout.gridSpan === 12 && cardNode?.layout.gridSpan === 6,
-    responsive: typeof cardNode?.responsive.mobile?.gridSpan === "number",
+    responsive: Boolean(cardNode && getResponsiveGridSpan(cardNode, "mobile") <= (roundTrip.grid.mobile.columns ?? 4)),
     puckContentCount: puckData.content.length
   };
 }

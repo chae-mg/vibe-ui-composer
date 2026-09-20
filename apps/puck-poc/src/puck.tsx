@@ -10,6 +10,10 @@ import {
 } from "@puckeditor/core";
 import {
   createDefaultProject,
+  BREAKPOINT_OPTIONS,
+  getBreakpointOption,
+  getGridSettings,
+  type Breakpoint,
   type ProjectDocument
 } from "./project-schema";
 import {
@@ -84,6 +88,10 @@ type SectionProps = {
 };
 type GridProps = {
   columns: number;
+  tabletColumns?: number;
+  mobileColumns?: number;
+  tabletGutter?: number;
+  mobileGutter?: number;
   gap: number | SpacingToken | string;
   padding: number | SpacingToken | string;
   align: LayoutAlign;
@@ -98,7 +106,7 @@ type CardProps = {
   body: string;
   span: number;
   tabletSpan: number;
-  mobileSpan: number;
+  smallSpan: number;
   background?: string;
   textColor?: string;
   border?: string;
@@ -248,6 +256,10 @@ const config: Config<Components> = {
       label: getComponentDefinition("Grid")?.label ?? "Grid",
       fields: {
         columns: { type: "number", min: 1, max: 24 },
+        tabletColumns: { type: "number", min: 1, max: 24, visible: false },
+        mobileColumns: { type: "number", min: 1, max: 24, visible: false },
+        tabletGutter: { type: "number", min: 0, max: 96, visible: false },
+        mobileGutter: { type: "number", min: 0, max: 96, visible: false },
         gap: { type: "select", options: SPACING_OPTIONS },
         padding: { type: "select", options: SPACING_OPTIONS },
         align: { type: "select", options: [{ label: "Stretch", value: "stretch" }, { label: "Start", value: "start" }, { label: "Center", value: "center" }, { label: "End", value: "end" }] },
@@ -267,13 +279,17 @@ const config: Config<Components> = {
         }
       },
       defaultProps: registryProps("Grid") as GridProps,
-      render: ({ columns, gap, padding, align, justify, heightMode, height, showOverlay, content: Content }) => {
+      render: ({ columns, tabletColumns, mobileColumns, tabletGutter, mobileGutter, gap, padding, align, justify, heightMode, height, showOverlay, content: Content }) => {
         const resolvedGap = resolveSpacing(gap, 24);
         const resolvedPadding = resolveSpacing(padding, 16);
         const gridStyle = {
           ...getGridLayoutStyle({ columns, gap: resolvedGap, padding: resolvedPadding, align, justify, heightMode, height }),
           "--poc-grid-columns": columns,
+          "--poc-grid-columns-tablet": tabletColumns ?? columns,
+          "--poc-grid-columns-mobile": mobileColumns ?? Math.min(columns, 4),
           "--poc-grid-gap": `${resolvedGap}px`,
+          "--poc-grid-gap-tablet": `${tabletGutter ?? resolvedGap}px`,
+          "--poc-grid-gap-mobile": `${mobileGutter ?? Math.min(resolvedGap, 16)}px`,
           "--poc-grid-padding": `${resolvedPadding}px`
         } as CSSProperties;
 
@@ -299,7 +315,7 @@ const config: Config<Components> = {
         body: { type: "text" },
         span: { type: "number", min: 1, max: 12 },
         tabletSpan: { type: "number", min: 1, max: 8 },
-        mobileSpan: { type: "number", min: 1, max: 4 },
+        smallSpan: { type: "number", min: 1, max: 4 },
         background: { type: "text" },
         textColor: { type: "text" },
         border: { type: "text" },
@@ -309,14 +325,14 @@ const config: Config<Components> = {
         content: { type: "slot", allow: slotAllow("Card") }
       },
       defaultProps: registryProps("Card") as CardProps,
-      render: ({ title, body, span, tabletSpan, mobileSpan, background, textColor, border, radius, shadow, typographyRole, content: Content, puck }) => (
+      render: ({ title, body, span, tabletSpan, smallSpan, background, textColor, border, radius, shadow, typographyRole, content: Content, puck }) => (
         <article
           ref={puck.dragRef}
           className="poc-card"
           style={{
             gridColumn: `span ${span}`,
             "--poc-card-span-tablet": tabletSpan,
-            "--poc-card-span-mobile": mobileSpan,
+            "--poc-card-span-mobile": smallSpan,
             ...getAppearanceStyle({ background, textColor, border, radius, shadow })
           } as CSSProperties}
         >
@@ -404,13 +420,17 @@ const config: Config<Components> = {
     fields: {
       title: { type: "text" },
       gridMargin: { type: "number", min: 0, max: 128, visible: false },
+      tabletGridMargin: { type: "number", min: 0, max: 128, visible: false },
+      mobileGridMargin: { type: "number", min: 0, max: 128, visible: false },
       theme: { type: "select", options: THEME_OPTIONS, visible: false },
       style: { type: "select", options: STYLE_OPTIONS, visible: false }
     },
-    render: ({ title, children, gridMargin, theme, style }) => {
+    render: ({ title, children, gridMargin, tabletGridMargin, mobileGridMargin, theme, style }) => {
       const margin = typeof gridMargin === "number" && Number.isFinite(gridMargin) ? gridMargin : 32;
+      const tabletMargin = typeof tabletGridMargin === "number" && Number.isFinite(tabletGridMargin) ? tabletGridMargin : margin;
+      const mobileMargin = typeof mobileGridMargin === "number" && Number.isFinite(mobileGridMargin) ? mobileGridMargin : tabletMargin;
       return (
-        <main className="poc-page" style={{ ...getThemeStyleVars(theme, style), "--poc-page-margin": `${margin}px` } as CSSProperties}>
+        <main className="poc-page" style={{ ...getThemeStyleVars(theme, style), "--poc-page-margin": `${margin}px`, "--poc-page-margin-tablet": `${tabletMargin}px`, "--poc-page-margin-mobile": `${mobileMargin}px` } as CSSProperties}>
           <div className="poc-page-title">{title}</div>
           {children}
         </main>
@@ -426,11 +446,32 @@ type StoredState = {
   project?: ProjectDocument;
 };
 
+function migratePuckData(data: Data): Data {
+  const visit = (item: any): any => {
+    if (!item || typeof item !== "object") return item;
+    const props = { ...(item.props ?? {}) };
+    if (props.smallSpan == null && typeof props.mobileSpan === "number") {
+      props.smallSpan = props.mobileSpan;
+    }
+    delete props.mobileSpan;
+    for (const [key, value] of Object.entries(props)) {
+      if (Array.isArray(value)) props[key] = value.map(visit);
+    }
+    return { ...item, props };
+  };
+
+  return {
+    ...data,
+    content: Array.isArray(data.content) ? data.content.map(visit) : data.content,
+    root: data.root ? { ...data.root, props: { ...(data.root.props ?? {}) } } : data.root
+  };
+}
+
 type PropertyTab = "Layout" | "Size" | "Spacing" | "Typography" | "Appearance" | "Props";
 
 const PROPERTY_TABS: PropertyTab[] = ["Layout", "Size", "Spacing", "Typography", "Appearance", "Props"];
 const LAYOUT_PROPERTIES = new Set(["direction", "wrap", "align", "justify", "columns", "showOverlay"]);
-const SIZE_PROPERTIES = new Set(["heightMode", "height", "span", "tabletSpan", "mobileSpan"]);
+const SIZE_PROPERTIES = new Set(["heightMode", "height", "span", "tabletSpan", "smallSpan"]);
 const SPACING_PROPERTIES = new Set(["gap", "padding"]);
 const TYPOGRAPHY_PROPERTIES = new Set(["text", "level", "title", "label", "body", "variant", "tone", "orientation", "options", "columns", "typographyRole"]);
 const APPEARANCE_PROPERTIES = new Set(["background", "textColor", "border", "radius", "shadow"]);
@@ -531,12 +572,28 @@ function PropertiesPanel({ children, isLoading }: { children: ReactNode; isLoadi
               ...rawField,
               label: rawField.label ?? registrySchema?.[name]?.label ?? humanizePropertyName(name)
             } as Field;
+            const fieldValue = (itemProps as Record<string, unknown>)[name];
+            if (name === "tabletSpan" || name === "smallSpan") {
+              return (
+                <label key={name} className="poc-field">
+                  <span>{field.label}</span>
+                  <input
+                    className="poc-input"
+                    type="number"
+                    min={field.type === "number" ? field.min : undefined}
+                    max={field.type === "number" ? field.max : undefined}
+                    value={typeof fieldValue === "number" ? fieldValue : ""}
+                    onChange={(event) => onFieldChange(name, Number(event.target.value))}
+                  />
+                </label>
+              );
+            }
             return (
               <AutoField
                 key={name}
                 id={`property-${targetId ?? "root"}-${name}`}
                 field={field as any}
-                value={(itemProps as Record<string, unknown>)[name]}
+                value={fieldValue}
                 onChange={(value) => onFieldChange(name, value)}
               />
             );
@@ -561,9 +618,9 @@ function loadStoredState(): StoredState {
 
     const parsed = JSON.parse(saved) as Data | StoredState;
     if ("puckData" in parsed && parsed.puckData) {
-      return { puckData: parsed.puckData, project: parsed.project };
+      return { puckData: migratePuckData(parsed.puckData), project: parsed.project };
     }
-    return { puckData: parsed as Data };
+    return { puckData: migratePuckData(parsed as Data) };
   } catch {
     return { puckData: defaultData };
   }
@@ -572,6 +629,7 @@ function loadStoredState(): StoredState {
 export function Puck() {
   const [savedAt, setSavedAt] = useState<string | null>(null);
   const [showSchemaRenderer, setShowSchemaRenderer] = useState(false);
+  const [previewBreakpoint, setPreviewBreakpoint] = useState<Breakpoint>("desktop");
   const [layoutPresetSelection, setLayoutPresetSelection] = useState("");
   const [editorRevision, setEditorRevision] = useState(0);
   const storedState = useMemo(loadStoredState, []);
@@ -621,8 +679,8 @@ export function Puck() {
     setSavedAt(new Date().toLocaleTimeString("ko-KR"));
   };
 
-  const updateDesktopGrid = (patch: Partial<GridSettings>) => {
-    persistProject(updateGridSettings(currentProject, "desktop", patch));
+  const updateResponsiveGrid = (patch: Partial<GridSettings>) => {
+    persistProject(updateGridSettings(currentProject, previewBreakpoint, patch));
   };
 
   const toggleGridOverlay = () => {
@@ -660,10 +718,10 @@ export function Puck() {
   return (
     <div className="poc-shell" style={getThemeStyleVars(currentProject.theme, currentProject.style) as CSSProperties}>
       <div className="poc-status" aria-live="polite">
-        <span>Phase 10 · block & layout preset validation</span>
+        <span>Phase 11 · responsive validation</span>
         <span>
           {validationPassed
-            ? `Blocks ✓ · Layout Presets ✓ · Theme ✓ · Tokens ✓ · Properties ✓ · Layout ✓ · Grid ✓ · Canvas DnD ✓ · Registry ✓ · ${componentRegistry.length} components · ${Object.keys(currentProject.nodes).length} nodes`
+            ? `Responsive ✓ · Override ✓ · Auto Stack ✓ · Blocks ✓ · Layout ✓ · Grid ✓ · Canvas DnD ✓ · Registry ✓ · ${componentRegistry.length} components · ${Object.keys(currentProject.nodes).length} nodes`
             : "Schema adapter needs review"}
           {savedAt ? " · Saved " + savedAt : ""}
         </span>
@@ -718,13 +776,28 @@ export function Puck() {
           </select>
         </label>
       </div>
-      <div className="poc-grid-toolbar" aria-label="Desktop grid settings">
-        <strong>Desktop Grid</strong>
+      <div className="poc-responsive-toolbar" aria-label="Responsive preview and grid settings">
+        <div className="poc-responsive-toolbar__breakpoints">
+          <strong>Responsive</strong>
+          {BREAKPOINT_OPTIONS.map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              className={previewBreakpoint === option.value ? "is-active" : ""}
+              aria-pressed={previewBreakpoint === option.value}
+              onClick={() => setPreviewBreakpoint(option.value)}
+            >
+              {option.label} · {option.width}px
+            </button>
+          ))}
+        </div>
+        <div className="poc-responsive-toolbar__grid">
+          <strong>{getBreakpointOption(previewBreakpoint).label} Grid</strong>
         <label>
           Columns
           <select
-            value={currentProject.grid.desktop.columns}
-            onChange={(event) => updateDesktopGrid({ columns: Number(event.target.value) })}
+            value={getGridSettings(currentProject, previewBreakpoint).columns}
+            onChange={(event) => updateResponsiveGrid({ columns: Number(event.target.value) })}
           >
             {GRID_COLUMN_PRESETS.map((columns) => <option key={columns} value={columns}>{columns}</option>)}
           </select>
@@ -736,8 +809,8 @@ export function Puck() {
             min={0}
             max={96}
             step={1}
-            value={currentProject.grid.desktop.gutter}
-            onChange={(event) => updateDesktopGrid({ gutter: Number(event.target.value) })}
+            value={getGridSettings(currentProject, previewBreakpoint).gutter}
+            onChange={(event) => updateResponsiveGrid({ gutter: Number(event.target.value) })}
           />
           <span>px</span>
         </label>
@@ -748,8 +821,8 @@ export function Puck() {
             min={0}
             max={128}
             step={1}
-            value={currentProject.grid.desktop.margin}
-            onChange={(event) => updateDesktopGrid({ margin: Number(event.target.value) })}
+            value={getGridSettings(currentProject, previewBreakpoint).margin}
+            onChange={(event) => updateResponsiveGrid({ margin: Number(event.target.value) })}
           />
           <span>px</span>
         </label>
@@ -761,14 +834,15 @@ export function Puck() {
         >
           {gridOverlayVisible ? "Hide grid overlay" : "Show grid overlay"}
         </button>
+        </div>
       </div>
       {showSchemaRenderer ? (
         <section className="poc-schema-preview" aria-label="Independent schema renderer">
           <div className="poc-schema-preview__header">
             <strong>Independent Project JSON Renderer</strong>
-            <span>{currentProject.name} · {currentProject.schemaVersion}</span>
+            <span>{currentProject.name} · {getBreakpointOption(previewBreakpoint).label} · {currentProject.schemaVersion}</span>
           </div>
-          <ProjectRenderer project={currentProject} breakpoint="desktop" />
+          <ProjectRenderer project={currentProject} breakpoint={previewBreakpoint} />
         </section>
       ) : null}
       <PuckEditor

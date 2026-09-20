@@ -33,6 +33,8 @@ Block은 저장 시 별도 특수 타입으로 남기지 않고, 삽입 시 일�
 
 Layout 컴포넌트의 편집 속성은 각 Node의 `props`에 저장한다. `Container`는 기본적으로 Column Stack이며, `Flex`는 Row / Column과 Wrap, Align, Justify, Gap, Padding, Height Mode를 지원한다. `Grid`는 Columns와 Gap, Align, Justify, Padding, Height Mode를 지원한다. Gap / Padding은 `space.*`, Radius는 `radius.*`, Shadow는 `shadow.*`, 텍스트 스타일은 `typographyRole` token을 우선 사용한다. Section과 Card의 기본 색상은 `theme.surface`, `theme.text`, `theme.border` alias로 저장하고, 사용자가 직접 입력한 raw 색상 값은 Component override로 유지한다. 기존 숫자형 Gap / Padding / Radius와 raw Shadow 값도 resolver가 읽어 기존 저장 JSON을 호환한다. Section과 Card는 Background, Text Color, Border, Radius, Shadow, Typography Role 속성을 지원한다. Puck 편집기와 독립 Renderer는 동일한 속성으로 스타일을 계산한다.
 
+Responsive는 `grid.desktop`, `grid.tablet`, `grid.mobile`을 각각 보존한다. Desktop Grid 설정은 기본값이며 Tablet / Mobile은 해당 breakpoint의 Preview와 Renderer에 적용된다. Card의 `layout.gridSpan`은 Desktop 기본값이고 `responsive.tablet.gridSpan`과 `responsive.mobile.gridSpan`이 있을 때만 해당 breakpoint에서 override한다. Override가 없으면 Desktop 값을 상속하고, 현재 breakpoint의 Grid columns보다 큰 span은 Renderer에서 columns 범위로 clamp해 Mobile Auto Stack을 만든다. Puck 어댑터는 편집기 표시용 `tabletSpan`, `smallSpan` 값을 이 구조로 변환하며, 기존 저장 데이터의 `mobileSpan`은 로드 시 `smallSpan`으로 마이그레이션한다.
+
 ## Node
 
 각 Node는 다음 필드를 가진다.

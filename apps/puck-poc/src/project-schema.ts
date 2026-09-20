@@ -3,6 +3,12 @@ export const PROJECT_SCHEMA_VERSION = 1 as const;
 export type Breakpoint = "desktop" | "tablet" | "mobile";
 export type EditableBreakpoint = Exclude<Breakpoint, "desktop">;
 
+export const BREAKPOINT_OPTIONS: Array<{ value: Breakpoint; label: string; width: number }> = [
+  { value: "desktop", label: "Desktop", width: 1440 },
+  { value: "tablet", label: "Tablet", width: 768 },
+  { value: "mobile", label: "Mobile", width: 390 }
+];
+
 export type GridSettings = {
   columns: number;
   gutter: number;
@@ -67,6 +73,10 @@ export function getGridSettings(
   breakpoint: Breakpoint
 ): GridSettings {
   return project.grid[breakpoint] ?? DEFAULT_GRID[breakpoint];
+}
+
+export function getBreakpointOption(breakpoint: Breakpoint) {
+  return BREAKPOINT_OPTIONS.find((option) => option.value === breakpoint) ?? BREAKPOINT_OPTIONS[0];
 }
 
 export function createDefaultProject(): ProjectDocument {

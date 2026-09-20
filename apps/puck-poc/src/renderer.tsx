@@ -162,8 +162,12 @@ function NodeView({
     }
     case "Grid": {
       const grid = getGridSettings(project, breakpoint);
-      const columns = Math.max(1, numberProp(node, "columns", grid.columns));
-      const gap = Math.max(0, resolveSpacing(node.props.gap, grid.gutter));
+      const columns = breakpoint === "desktop"
+        ? Math.max(1, numberProp(node, "columns", grid.columns))
+        : Math.max(1, grid.columns);
+      const gap = breakpoint === "desktop"
+        ? Math.max(0, resolveSpacing(node.props.gap, grid.gutter))
+        : Math.max(0, grid.gutter);
       const padding = resolveSpacing(node.props.padding, 16);
       const gridStyle = {
         ...getGridLayoutStyle({
