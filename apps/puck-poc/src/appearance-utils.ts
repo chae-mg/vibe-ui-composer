@@ -1,4 +1,5 @@
 import { resolveRadius, resolveShadow, type ShadowToken } from "./design-tokens";
+import { resolveThemeColor } from "./theme-utils";
 
 export type AppearanceShadow = ShadowToken | "none" | "sm" | "md" | "lg";
 
@@ -14,10 +15,10 @@ export function getAppearanceStyle(options: AppearanceOptions): Record<string, s
   const radius = options.radius !== undefined ? resolveRadius(options.radius, 0) : undefined;
   const shadow = options.shadow ? resolveShadow(options.shadow, "shadow.none") : undefined;
   return {
-    ...(options.background ? { background: options.background } : {}),
-    ...(options.textColor ? { color: options.textColor } : {}),
-    ...(options.border ? { borderColor: options.border, borderStyle: "solid", borderWidth: 1 } : {}),
-    ...(radius !== undefined ? { borderRadius: `${radius}px` } : {}),
+    ...(options.background ? { background: resolveThemeColor(options.background) } : {}),
+    ...(options.textColor ? { color: resolveThemeColor(options.textColor, "text") } : {}),
+    ...(options.border ? { borderColor: resolveThemeColor(options.border, "border"), borderStyle: "solid", borderWidth: 1 } : {}),
+    ...(radius !== undefined ? { borderRadius: typeof radius === "number" ? `${radius}px` : radius } : {}),
     ...(shadow ? { boxShadow: shadow } : {})
   };
 }

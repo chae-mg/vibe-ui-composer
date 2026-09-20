@@ -27,7 +27,9 @@ Project JSON은 UI Composer가 소유하는 영구 데이터 모델이다. Puck�
 
 `nodes`는 ID를 키로 사용하는 정규화된 Map이다. Parent는 저장하지 않고 각 Node의 `children: string[]`으로 트리를 표현한다. Parent Lookup이 필요하면 Runtime에 계산한다.
 
-Layout 컴포넌트의 편집 속성은 각 Node의 `props`에 저장한다. `Container`는 기본적으로 Column Stack이며, `Flex`는 Row / Column과 Wrap, Align, Justify, Gap, Padding, Height Mode를 지원한다. `Grid`는 Columns와 Gap, Align, Justify, Padding, Height Mode를 지원한다. Gap / Padding은 `space.*`, Radius는 `radius.*`, Shadow는 `shadow.*`, 텍스트 스타일은 `typographyRole` token을 우선 사용한다. 기존 숫자형 Gap / Padding / Radius와 raw Shadow 값도 resolver가 읽어 기존 저장 JSON을 호환한다. Section과 Card는 Background, Text Color, Border, Radius, Shadow, Typography Role 속성을 지원한다. Puck 편집기와 독립 Renderer는 동일한 속성으로 스타일을 계산한다.
+`theme`는 전역 색상 팔레트 ID이며 현재 `clean-light`와 `clean-dark`를 지원한다. `style`은 전역 모서리, 그림자, 밀도, 표면 투명도, 글꼴 조합이며 현재 `clean`, `soft`, `business`, `compact`, `glass`를 지원한다. 내장 Preset은 이 두 필드를 함께 갱신한다. Puck Canvas와 독립 Renderer는 같은 CSS variable resolver로 전역 값을 계산한다.
+
+Layout 컴포넌트의 편집 속성은 각 Node의 `props`에 저장한다. `Container`는 기본적으로 Column Stack이며, `Flex`는 Row / Column과 Wrap, Align, Justify, Gap, Padding, Height Mode를 지원한다. `Grid`는 Columns와 Gap, Align, Justify, Padding, Height Mode를 지원한다. Gap / Padding은 `space.*`, Radius는 `radius.*`, Shadow는 `shadow.*`, 텍스트 스타일은 `typographyRole` token을 우선 사용한다. Section과 Card의 기본 색상은 `theme.surface`, `theme.text`, `theme.border` alias로 저장하고, 사용자가 직접 입력한 raw 색상 값은 Component override로 유지한다. 기존 숫자형 Gap / Padding / Radius와 raw Shadow 값도 resolver가 읽어 기존 저장 JSON을 호환한다. Section과 Card는 Background, Text Color, Border, Radius, Shadow, Typography Role 속성을 지원한다. Puck 편집기와 독립 Renderer는 동일한 속성으로 스타일을 계산한다.
 
 ## Node
 

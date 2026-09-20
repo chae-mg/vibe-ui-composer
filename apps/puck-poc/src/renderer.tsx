@@ -18,6 +18,7 @@ import {
 } from "./layout-utils";
 import { getAppearanceStyle, type AppearanceShadow } from "./appearance-utils";
 import { getTypographyStyle, resolveSpacing } from "./design-tokens";
+import { getThemeStyleVars } from "./theme-utils";
 
 export type ProjectRendererProps = {
   project: ProjectDocument;
@@ -255,7 +256,7 @@ export function ProjectRenderer({
   }
 
   return (
-    <div className="poc-renderer" data-schema-version={project.schemaVersion} data-breakpoint={breakpoint}>
+    <div className="poc-renderer" style={getThemeStyleVars(project.theme, project.style) as CSSProperties} data-schema-version={project.schemaVersion} data-breakpoint={breakpoint}>
       <NodeView
         project={project}
         nodeId={root.id}

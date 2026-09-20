@@ -17,11 +17,11 @@ Component Registry는 Left Panel, Project Renderer, Child Constraint, 기본 Pro
 | Type | Category | Children | 주요 Props |
 | --- | --- | --- | --- |
 | Page | layout | 가능 | title |
-| Section | layout | 가능 | title, tone, background, textColor, border, radius token, shadow token, typographyRole, content |
+| Section | layout | 가능 | title, tone, background (`theme.*` alias 지원), textColor (`theme.*` alias 지원), border (`theme.*` alias 지원), radius token, shadow token, typographyRole, content |
 | Container | layout | 가능 | direction, wrap, align, justify, spacing token gap / padding, heightMode, height, content (Stack 기본) |
 | Flex | layout | 가능 | direction, wrap, align, justify, spacing token gap / padding, heightMode, height, content |
 | Grid | layout | 가능 | columns, spacing token gap / padding, align, justify, heightMode, height, showOverlay, content |
-| Card | layout | 가능 | title, body, span, responsive span, background, textColor, border, radius token, shadow token, typographyRole |
+| Card | layout | 가능 | title, body, span, responsive span, background (`theme.*` alias 지원), textColor (`theme.*` alias 지원), border (`theme.*` alias 지원), radius token, shadow token, typographyRole |
 | Heading | content | 불가 | text, level, typographyRole |
 | Text | content | 불가 | text, typographyRole |
 | Button | content | 불가 | label, variant, typographyRole |

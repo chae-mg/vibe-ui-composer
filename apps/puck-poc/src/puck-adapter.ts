@@ -113,6 +113,7 @@ export function puckDataToProject(
   };
 
   const rootId = baseProject?.rootId ?? "project-root";
+  const rootProps = (data.root?.props ?? {}) as Record<string, unknown>;
   const rootChildren = Array.isArray(data.content)
     ? data.content.filter(isComponentData).map(visit)
     : [];
@@ -122,7 +123,7 @@ export function puckDataToProject(
     id: rootId,
     type: "Page",
     children: rootChildren,
-    props: data.root?.props ?? {},
+    props: rootProps,
     layout: { gridSpan: 12 },
     responsive: {}
   };
@@ -135,8 +136,8 @@ export function puckDataToProject(
     updatedAt: now,
     rootId,
     grid: baseProject?.grid ?? DEFAULT_GRID,
-    theme: baseProject?.theme ?? "clean-light",
-    style: baseProject?.style ?? "clean",
+    theme: typeof rootProps.theme === "string" ? rootProps.theme : baseProject?.theme ?? "clean-light",
+    style: typeof rootProps.style === "string" ? rootProps.style : baseProject?.style ?? "clean",
     nodes
   };
 }
@@ -181,7 +182,9 @@ export function projectToPuckData(project: ProjectDocument): Data {
     props: {
       ...root.props,
       title: project.name,
-      gridMargin: project.grid.desktop.margin
+      gridMargin: project.grid.desktop.margin,
+      theme: project.theme,
+      style: project.style
     }
   } as Data["root"];
 

@@ -49,6 +49,14 @@ import {
   type SpacingToken,
   type TypographyRole
 } from "./design-tokens";
+import {
+  BUILT_IN_PRESET_OPTIONS,
+  BUILT_IN_PRESETS,
+  STYLE_OPTIONS,
+  THEME_OPTIONS,
+  getThemeStyleVars,
+  type BuiltInPresetId
+} from "./theme-utils";
 
 const STORAGE_KEY = "ui-composer-puck-poc";
 
@@ -387,12 +395,14 @@ const config: Config<Components> = {
   root: {
     fields: {
       title: { type: "text" },
-      gridMargin: { type: "number", min: 0, max: 128, visible: false }
+      gridMargin: { type: "number", min: 0, max: 128, visible: false },
+      theme: { type: "select", options: THEME_OPTIONS, visible: false },
+      style: { type: "select", options: STYLE_OPTIONS, visible: false }
     },
-    render: ({ title, children, gridMargin }) => {
+    render: ({ title, children, gridMargin, theme, style }) => {
       const margin = typeof gridMargin === "number" && Number.isFinite(gridMargin) ? gridMargin : 32;
       return (
-        <main className="poc-page" style={{ "--poc-page-margin": `${margin}px` } as CSSProperties}>
+        <main className="poc-page" style={{ ...getThemeStyleVars(theme, style), "--poc-page-margin": `${margin}px` } as CSSProperties}>
           <div className="poc-page-title">{title}</div>
           {children}
         </main>
@@ -610,15 +620,29 @@ export function Puck() {
     persistProject(setGridOverlay(currentProject, visible));
   };
 
+  const updateTheme = (theme: string) => {
+    persistProject({ ...currentProject, theme });
+  };
+
+  const updateStyle = (style: string) => {
+    persistProject({ ...currentProject, style });
+  };
+
+  const applyPreset = (presetId: string) => {
+    const preset = BUILT_IN_PRESETS[presetId as BuiltInPresetId];
+    if (!preset) return;
+    persistProject({ ...currentProject, theme: preset.theme, style: preset.style });
+  };
+
   const validationPassed = validation.schemaVersion && validation.validProject;
 
   return (
-    <div className="poc-shell">
+    <div className="poc-shell" style={getThemeStyleVars(currentProject.theme, currentProject.style) as CSSProperties}>
       <div className="poc-status" aria-live="polite">
-        <span>Phase 8 · design token validation</span>
+        <span>Phase 9 · theme & style validation</span>
         <span>
           {validationPassed
-            ? `Tokens ✓ · Properties ✓ · Layout ✓ · Grid ✓ · Canvas DnD ✓ · Registry ✓ · ${componentRegistry.length} components · ${Object.keys(currentProject.nodes).length} nodes`
+            ? `Theme ✓ · Tokens ✓ · Properties ✓ · Layout ✓ · Grid ✓ · Canvas DnD ✓ · Registry ✓ · ${componentRegistry.length} components · ${Object.keys(currentProject.nodes).length} nodes`
             : "Schema adapter needs review"}
           {savedAt ? " · Saved " + savedAt : ""}
         </span>
@@ -629,6 +653,27 @@ export function Puck() {
         >
           {showSchemaRenderer ? "Hide schema renderer" : "Open schema renderer"}
         </button>
+      </div>
+      <div className="poc-theme-toolbar" aria-label="Theme and style settings">
+        <strong>Theme &amp; Style</strong>
+        <label>
+          Theme
+          <select value={currentProject.theme} onChange={(event) => updateTheme(event.target.value)}>
+            {THEME_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+          </select>
+        </label>
+        <label>
+          Style
+          <select value={currentProject.style} onChange={(event) => updateStyle(event.target.value)}>
+            {STYLE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+          </select>
+        </label>
+        <label>
+          Preset
+          <select defaultValue="" onChange={(event) => applyPreset(event.target.value)}>
+            {BUILT_IN_PRESET_OPTIONS.map((option) => <option key={option.value || "empty"} value={option.value}>{option.label}</option>)}
+          </select>
+        </label>
       </div>
       <div className="poc-grid-toolbar" aria-label="Desktop grid settings">
         <strong>Desktop Grid</strong>

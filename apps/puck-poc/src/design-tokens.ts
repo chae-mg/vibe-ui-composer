@@ -79,15 +79,15 @@ export function resolveSpacing(value: unknown, fallback: number): number {
   return numericValue(value) ?? fallback;
 }
 
-export function resolveRadius(value: unknown, fallback: number): number {
-  if (typeof value === "string" && value in RADIUS_TOKENS) return RADIUS_TOKENS[value as RadiusToken];
+export function resolveRadius(value: unknown, fallback: number): number | string {
+  if (typeof value === "string" && value in RADIUS_TOKENS) return `var(--poc-radius-${value.replace("radius.", "")})`;
   return numericValue(value) ?? fallback;
 }
 
 export function resolveShadow(value: unknown, fallback: ShadowToken): string {
-  if (typeof value === "string" && value in SHADOW_TOKENS) return SHADOW_TOKENS[value as ShadowToken];
-  if (value === "none" || value === "sm" || value === "md" || value === "lg") return SHADOW_TOKENS[`shadow.${value}` as ShadowToken];
-  return SHADOW_TOKENS[fallback];
+  if (typeof value === "string" && value in SHADOW_TOKENS) return `var(--poc-shadow-${value.replace("shadow.", "")})`;
+  if (value === "none" || value === "sm" || value === "md" || value === "lg") return `var(--poc-shadow-${value})`;
+  return `var(--poc-shadow-${fallback.replace("shadow.", "")})`;
 }
 
 export function getTypographyStyle(value: unknown, fallback: TypographyRole = "body"): Record<string, string | number> {

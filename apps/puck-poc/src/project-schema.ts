@@ -86,9 +86,9 @@ export function createDefaultProject(): ProjectDocument {
     props: {
       title: "Dashboard section",
       tone: "surface",
-      background: "#ffffff",
-      textColor: "#172033",
-      border: "#d8deea",
+      background: "theme.surface",
+      textColor: "theme.text",
+      border: "theme.border",
       radius: "radius.lg",
       shadow: "shadow.none",
       typographyRole: "heading-2"
@@ -120,9 +120,9 @@ export function createDefaultProject(): ProjectDocument {
     props: {
       title: "Revenue",
       body: "$128,430",
-      background: "#ffffff",
-      textColor: "#172033",
-      border: "#dce3ef",
+      background: "theme.surface",
+      textColor: "theme.text",
+      border: "theme.border",
       radius: "radius.md",
       shadow: "shadow.sm",
       typographyRole: "title"
@@ -137,9 +137,9 @@ export function createDefaultProject(): ProjectDocument {
     props: {
       title: "Active users",
       body: "8,492",
-      background: "#ffffff",
-      textColor: "#172033",
-      border: "#dce3ef",
+      background: "theme.surface",
+      textColor: "theme.text",
+      border: "theme.border",
       radius: "radius.md",
       shadow: "shadow.sm",
       typographyRole: "title"
