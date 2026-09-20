@@ -44,6 +44,7 @@ Responsive는 `grid.desktop`, `grid.tablet`, `grid.mobile`을 각각 보존한�
   "id": "card-1",
   "type": "Card",
   "children": [],
+  "locked": false,
   "props": { "title": "Revenue", "body": "$128,430" },
   "layout": { "gridSpan": 6 },
   "responsive": {
@@ -52,6 +53,8 @@ Responsive는 `grid.desktop`, `grid.tablet`, `grid.mobile`을 각각 보존한�
   }
 }
 ```
+
+`locked`가 `true`인 Node는 Properties 입력과 기본 편집 toolbar의 Duplicate / Delete를 막고, Puck Canvas에서 들어온 변경도 저장 전에 원래 snapshot으로 보호한다. Lock 상태는 Project JSON에 저장한다. Root Node는 잠글 수 없다. Undo / Redo History는 Project Document snapshot을 Runtime Memory에만 보관하며 localStorage에는 저장하지 않는다.
 
 초기 Renderer가 인식하는 타입은 `Page`, `Section`, `Container`, `Flex`, `Grid`, `Card`, `Text`, `Button`, `Input`이다. 알 수 없는 타입은 오류를 던지지 않고 경고 placeholder로 표시하며, 해당 Node의 자식은 계속 탐색한다.
 

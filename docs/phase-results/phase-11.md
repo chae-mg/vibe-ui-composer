@@ -28,9 +28,9 @@ Status: PASS
 
 - Puck 기본 viewport 전환과 외부 Responsive Preview 전환은 각각 독립적으로 동작한다. 외부 Preview는 Project Renderer 기준이며 Puck Canvas는 Puck 상단 viewport 버튼을 사용한다.
 - Block은 현재 상단 Block Library에서 Page root에 삽입한다. 선택한 Nested Container를 대상으로 하는 Block Drop은 이후 UX 개선 범위다.
-- IndexedDB 저장과 Undo / Redo 고도화는 Phase 12에서 다룬다.
+- Runtime Undo / Redo와 기본 Node 편집은 Phase 12에서 완료했다. History 복원과 IndexedDB 저장은 MVP 이후 범위다.
 - Puck 의존성으로 production bundle 일부가 500KB를 초과한다는 Vite 경고가 있다.
 
 ## Next Phase
 
-Phase 12 — History & Basic Editing
+Phase 12 — History & Basic Editing (완료)

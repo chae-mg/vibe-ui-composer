@@ -14,7 +14,8 @@ import {
   getBreakpointOption,
   getGridSettings,
   type Breakpoint,
-  type ProjectDocument
+  type ProjectDocument,
+  type ProjectNode
 } from "./project-schema";
 import {
   projectToPuckData,
@@ -23,6 +24,9 @@ import {
 } from "./puck-adapter";
 import {
   GRID_COLUMN_PRESETS,
+  duplicateSubtree,
+  removeSubtree,
+  setNodeLocked,
   setGridOverlay,
   updateGridSettings
 } from "./project-operations";
@@ -446,6 +450,63 @@ type StoredState = {
   project?: ProjectDocument;
 };
 
+type HistoryState = {
+  past: ProjectDocument[];
+  future: ProjectDocument[];
+};
+
+const HISTORY_LIMIT = 50;
+
+function projectSignature(project: ProjectDocument): string {
+  const { updatedAt: _updatedAt, ...snapshot } = project;
+  return JSON.stringify(snapshot);
+}
+
+function projectsDiffer(left: ProjectDocument, right: ProjectDocument): boolean {
+  return projectSignature(left) !== projectSignature(right);
+}
+
+function findParentNode(project: ProjectDocument, nodeId: string): ProjectNode | undefined {
+  return Object.values(project.nodes).find((node) => node.children.includes(nodeId));
+}
+
+function protectLockedNodes(previous: ProjectDocument, next: ProjectDocument): ProjectDocument {
+  const lockedIds = Object.values(previous.nodes)
+    .filter((node) => node.locked && node.id !== previous.rootId)
+    .map((node) => node.id);
+  if (lockedIds.length === 0) return next;
+
+  const nodes: Record<string, ProjectNode> = { ...next.nodes };
+  const restoreSubtree = (sourceProject: ProjectDocument, nodeId: string) => {
+    const source = sourceProject.nodes[nodeId];
+    if (!source) return;
+    nodes[nodeId] = { ...source, children: [...source.children], props: { ...source.props }, responsive: { ...source.responsive } };
+    source.children.forEach((childId) => restoreSubtree(sourceProject, childId));
+  };
+
+  lockedIds.forEach((nodeId) => {
+    const previousParent = findParentNode(previous, nodeId);
+    if (previousParent && !nodes[previousParent.id]) restoreSubtree(previous, previousParent.id);
+    restoreSubtree(previous, nodeId);
+
+    Object.entries(nodes).forEach(([parentId, node]) => {
+      if (parentId !== previousParent?.id && node.children.includes(nodeId)) {
+        nodes[parentId] = { ...node, children: node.children.filter((childId) => childId !== nodeId) };
+      }
+    });
+
+    if (previousParent && nodes[previousParent.id]) {
+      const parent = nodes[previousParent.id];
+      const children = parent.children.filter((childId) => childId !== nodeId);
+      const previousIndex = previousParent.children.indexOf(nodeId);
+      children.splice(Math.max(0, Math.min(previousIndex, children.length)), 0, nodeId);
+      nodes[previousParent.id] = { ...parent, children };
+    }
+  });
+
+  return { ...next, nodes };
+}
+
 function migratePuckData(data: Data): Data {
   const visit = (item: any): any => {
     if (!item || typeof item !== "object") return item;
@@ -521,6 +582,7 @@ function PropertiesPanel({ children, isLoading }: { children: ReactNode; isLoadi
   const itemType = selectedItem?.type ?? "root";
   const targetId = typeof selectedItem?.props?.id === "string" ? selectedItem.props.id : null;
   const itemProps = selectedItem?.props ?? appState.data.root?.props ?? {};
+  const isLocked = itemProps.locked === true;
   const fieldsByName = itemType === "root"
     ? (puckConfig.root?.fields ?? {})
     : ((puckConfig.components as Record<string, { fields?: Record<string, Field> }>)[itemType]?.fields ?? {});
@@ -530,6 +592,12 @@ function PropertiesPanel({ children, isLoading }: { children: ReactNode; isLoadi
 
   useEffect(() => {
     setActiveTab("Layout");
+  }, [itemType, targetId]);
+
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent("poc-selection-change", {
+      detail: { nodeId: targetId, itemType }
+    }));
   }, [itemType, targetId]);
 
   const visibleFields = fields.filter(([name]) => getPropertyTab(name) === activeTab);
@@ -566,7 +634,7 @@ function PropertiesPanel({ children, isLoading }: { children: ReactNode; isLoadi
         ))}
       </div>
       {visibleFields.length > 0 ? (
-        <div className="poc-properties-panel__fields">
+        <fieldset className="poc-properties-panel__fields" disabled={isLocked}>
           {visibleFields.map(([name, rawField]) => {
             const field = {
               ...rawField,
@@ -598,7 +666,7 @@ function PropertiesPanel({ children, isLoading }: { children: ReactNode; isLoadi
               />
             );
           })}
-        </div>
+        </fieldset>
       ) : (
         <div className="poc-properties-panel__empty">
           {fields.length > 0 ? `${activeTab} 속성이 없습니다.` : "편집 가능한 속성이 없습니다."}
@@ -632,6 +700,8 @@ export function Puck() {
   const [previewBreakpoint, setPreviewBreakpoint] = useState<Breakpoint>("desktop");
   const [layoutPresetSelection, setLayoutPresetSelection] = useState("");
   const [editorRevision, setEditorRevision] = useState(0);
+  const [history, setHistory] = useState<HistoryState>({ past: [], future: [] });
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const storedState = useMemo(loadStoredState, []);
   const initialData = storedState.puckData;
   const initialProject = useMemo<ProjectDocument>(
@@ -654,20 +724,30 @@ export function Puck() {
     [currentProject]
   );
 
-  const persist = (data: Data) => {
-    const project = puckDataToProject(data, currentProject.name, currentProject);
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify({ puckData: data, project })
-    );
-    setEditorData(data);
-    setCurrentProject(project);
-    const gridNode = Object.values(project.nodes).find((node) => node.type === "Grid");
-    if (gridNode) setGridOverlayVisible(gridNode.props.showOverlay !== false);
-    setSavedAt(new Date().toLocaleTimeString("ko-KR"));
+  useEffect(() => {
+    const handleSelectionChange = (event: Event) => {
+      const detail = (event as CustomEvent<{ nodeId?: string | null }>).detail;
+      setSelectedNodeId(detail?.nodeId ?? null);
+    };
+    window.addEventListener("poc-selection-change", handleSelectionChange);
+    return () => window.removeEventListener("poc-selection-change", handleSelectionChange);
+  }, []);
+
+  const recordHistory = (previous: ProjectDocument) => {
+    setHistory((current) => ({
+      past: [...current.past, previous].slice(-HISTORY_LIMIT),
+      future: []
+    }));
   };
 
-  const persistProject = (project: ProjectDocument) => {
+  const syncGridOverlay = (project: ProjectDocument) => {
+    const gridNode = Object.values(project.nodes).find((node) => node.type === "Grid");
+    if (gridNode) setGridOverlayVisible(gridNode.props.showOverlay !== false);
+  };
+
+  const persistProject = (project: ProjectDocument, shouldRecordHistory = true) => {
+    if (!projectsDiffer(currentProject, project)) return;
+    if (shouldRecordHistory) recordHistory(currentProject);
     const data = projectToPuckData(project);
     localStorage.setItem(
       STORAGE_KEY,
@@ -675,8 +755,71 @@ export function Puck() {
     );
     setEditorData(data);
     setCurrentProject(project);
+    syncGridOverlay(project);
     setEditorRevision((revision) => revision + 1);
     setSavedAt(new Date().toLocaleTimeString("ko-KR"));
+  };
+
+  const persist = (data: Data) => {
+    const candidateProject = puckDataToProject(data, currentProject.name, currentProject);
+    const project = protectLockedNodes(currentProject, candidateProject);
+    const lockedChangeRejected = projectsDiffer(project, candidateProject);
+    const persistedData = lockedChangeRejected ? projectToPuckData(project) : data;
+    if (projectsDiffer(currentProject, project)) recordHistory(currentProject);
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({ puckData: persistedData, project })
+    );
+    setEditorData(persistedData);
+    setCurrentProject(project);
+    syncGridOverlay(project);
+    if (lockedChangeRejected) setEditorRevision((revision) => revision + 1);
+    setSavedAt(new Date().toLocaleTimeString("ko-KR"));
+  };
+
+  const undo = () => {
+    const previous = history.past.at(-1);
+    if (!previous) return;
+    setHistory({
+      past: history.past.slice(0, -1),
+      future: [currentProject, ...history.future].slice(0, HISTORY_LIMIT)
+    });
+    persistProject(previous, false);
+  };
+
+  const redo = () => {
+    const next = history.future[0];
+    if (!next) return;
+    setHistory({
+      past: [...history.past, currentProject].slice(-HISTORY_LIMIT),
+      future: history.future.slice(1)
+    });
+    persistProject(next, false);
+  };
+
+  const selectedNode = selectedNodeId ? currentProject.nodes[selectedNodeId] : undefined;
+  const selectedNodeLocked = selectedNode?.locked === true;
+
+  const duplicateSelected = () => {
+    if (!selectedNodeId || selectedNodeLocked) return;
+    const parent = Object.values(currentProject.nodes).find((node) => node.children.includes(selectedNodeId));
+    if (!parent) return;
+    const nextProject = duplicateSubtree(currentProject, selectedNodeId);
+    if (!projectsDiffer(currentProject, nextProject)) return;
+    persistProject(nextProject);
+  };
+
+  const deleteSelected = () => {
+    if (!selectedNodeId || selectedNodeLocked) return;
+    const nextProject = removeSubtree(currentProject, selectedNodeId);
+    if (!projectsDiffer(currentProject, nextProject)) return;
+    persistProject(nextProject);
+    setSelectedNodeId(null);
+  };
+
+  const toggleSelectedLock = () => {
+    if (!selectedNodeId) return;
+    persistProject(setNodeLocked(currentProject, selectedNodeId, !selectedNodeLocked));
   };
 
   const updateResponsiveGrid = (patch: Partial<GridSettings>) => {
@@ -718,10 +861,10 @@ export function Puck() {
   return (
     <div className="poc-shell" style={getThemeStyleVars(currentProject.theme, currentProject.style) as CSSProperties}>
       <div className="poc-status" aria-live="polite">
-        <span>Phase 11 · responsive validation</span>
+        <span>Phase 12 · history and basic editing</span>
         <span>
           {validationPassed
-            ? `Responsive ✓ · Override ✓ · Auto Stack ✓ · Blocks ✓ · Layout ✓ · Grid ✓ · Canvas DnD ✓ · Registry ✓ · ${componentRegistry.length} components · ${Object.keys(currentProject.nodes).length} nodes`
+            ? `History ✓ · Editing ✓ · Lock ✓ · Responsive ✓ · Override ✓ · Auto Stack ✓ · Blocks ✓ · Layout ✓ · Grid ✓ · Canvas DnD ✓ · Registry ✓ · ${componentRegistry.length} components · ${Object.keys(currentProject.nodes).length} nodes`
             : "Schema adapter needs review"}
           {savedAt ? " · Saved " + savedAt : ""}
         </span>
@@ -732,6 +875,27 @@ export function Puck() {
         >
           {showSchemaRenderer ? "Hide schema renderer" : "Open schema renderer"}
         </button>
+      </div>
+      <div className="poc-history-toolbar" aria-label="History and basic editing">
+        <strong>Editing</strong>
+        <button type="button" onClick={undo} disabled={history.past.length === 0} aria-label="Undo">
+          Undo
+        </button>
+        <button type="button" onClick={redo} disabled={history.future.length === 0} aria-label="Redo">
+          Redo
+        </button>
+        <button type="button" onClick={duplicateSelected} disabled={!selectedNode || selectedNodeLocked} aria-label="Duplicate selected node">
+          Duplicate
+        </button>
+        <button type="button" onClick={deleteSelected} disabled={!selectedNode || selectedNodeLocked} aria-label="Delete selected node">
+          Delete
+        </button>
+        <button type="button" onClick={toggleSelectedLock} disabled={!selectedNode} aria-label={selectedNodeLocked ? "Unlock selected node" : "Lock selected node"}>
+          {selectedNodeLocked ? "Unlock" : "Lock"}
+        </button>
+        <span className="poc-history-toolbar__selection">
+          {selectedNode ? `${selectedNode.type}${selectedNodeLocked ? " · Locked" : " · Editable"}` : "Select a block to edit"}
+        </span>
       </div>
       <div className="poc-block-toolbar" aria-label="Block library and layout presets">
         <div className="poc-block-toolbar__group">

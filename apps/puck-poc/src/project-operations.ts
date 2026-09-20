@@ -17,7 +17,7 @@ function cloneNode(node: ProjectNode, nodes: Record<string, ProjectNode>, used: 
     .filter((child): child is ProjectNode => Boolean(child))
     .map((child) => cloneNode(child, nodes, used));
 
-  nodes[id] = { ...node, id, children, props: { ...node.props }, responsive: { ...node.responsive } };
+  nodes[id] = { ...node, id, locked: false, children, props: { ...node.props }, responsive: { ...node.responsive } };
   return id;
 }
 
@@ -35,7 +35,7 @@ export function duplicateSubtree(project: ProjectDocument, nodeId: string): Proj
   if (!source) return project;
 
   const parent = Object.values(project.nodes).find((node) => node.children.includes(nodeId));
-  if (!parent || !canInsertChild(project, parent.id, source.type)) return project;
+  if (!parent || parent.locked || source.locked || !canInsertChild(project, parent.id, source.type)) return project;
 
   const nodes = { ...project.nodes };
   const used = new Set(Object.keys(nodes));
@@ -52,7 +52,7 @@ export function removeSubtree(project: ProjectDocument, nodeId: string): Project
   if (nodeId === project.rootId || !project.nodes[nodeId]) return project;
   const nodes = { ...project.nodes };
   const parent = Object.values(nodes).find((node) => node.children.includes(nodeId));
-  if (!parent) return project;
+  if (!parent || parent.locked || nodes[nodeId].locked) return project;
 
   const remove = (id: string) => {
     const node = nodes[id];
@@ -63,6 +63,12 @@ export function removeSubtree(project: ProjectDocument, nodeId: string): Project
   remove(nodeId);
   nodes[parent.id] = { ...parent, children: parent.children.filter((childId) => childId !== nodeId) };
   return touch(project, nodes);
+}
+
+export function setNodeLocked(project: ProjectDocument, nodeId: string, locked: boolean): ProjectDocument {
+  const node = project.nodes[nodeId];
+  if (!node || nodeId === project.rootId) return project;
+  return touch(project, { ...project.nodes, [nodeId]: { ...node, locked } });
 }
 
 export function reorderChildren(

@@ -104,6 +104,8 @@ export function puckDataToProject(
     delete cleanProps.smallSpan;
     delete cleanProps.mobileSpan;
     delete cleanProps.tabletSpan;
+    const locked = cleanProps.locked === true || baseProject?.nodes[id]?.locked === true;
+    delete cleanProps.locked;
 
     const responsive: ProjectNode["responsive"] = {};
     if (tabletSpan !== fallbackTabletSpan) responsive.tablet = { gridSpan: tabletSpan };
@@ -114,6 +116,7 @@ export function puckDataToProject(
       type: PUCK_TO_PROJECT_TYPE[item.type] ?? item.type,
       children,
       props: cleanProps,
+      locked,
       layout: { gridSpan },
       responsive
     };
@@ -181,6 +184,8 @@ function nodeToPuck(
     ...node.props,
     id: node.id
   };
+
+  if (node.locked) props.locked = true;
 
   if (node.type === "Card") {
     const desktopSpan = getNumber(node.layout.gridSpan, 12);

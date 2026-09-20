@@ -156,17 +156,17 @@ GitHub Pages 배포 전 전체 실행한다.
 # J. History
 
 ## Smoke
-- [ ] Undo가 동작한다.
-- [ ] Redo가 동작한다.
+- [x] Undo가 동작한다.
+- [x] Redo가 동작한다.
 
 ## Regression
-- [ ] Add → Undo
-- [ ] Delete → Undo
+- [x] Add → Undo
+- [x] Delete → Undo
 - [ ] Resize → Undo
 - [ ] Property 변경 → Undo
 - [ ] Theme 변경 → Undo
-- [ ] 여러 단계 Undo / Redo 후 State가 깨지지 않는다.
-- [ ] 새로고침 후 History가 초기화되어도 Project 최신 상태는 유지된다.
+- [x] 여러 단계 Undo / Redo 후 State가 깨지지 않는다.
+- [x] 새로고침 후 History가 초기화되어도 Project 최신 상태는 유지된다.
 
 ---
 

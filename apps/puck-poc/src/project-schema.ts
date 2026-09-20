@@ -20,6 +20,7 @@ export type ProjectNode = {
   type: string;
   children: string[];
   props: Record<string, unknown>;
+  locked?: boolean;
   layout: { gridSpan: number };
   responsive: Partial<Record<EditableBreakpoint, { gridSpan?: number }>>;
 };
