@@ -7,6 +7,15 @@ import {
   type ProjectNode
 } from "./project-schema";
 import { getComponentDefinition } from "./component-registry";
+import {
+  getFlexLayoutStyle,
+  getGridLayoutStyle,
+  type LayoutAlign,
+  type LayoutDirection,
+  type LayoutHeightMode,
+  type LayoutJustify,
+  type LayoutWrap
+} from "./layout-utils";
 
 export type ProjectRendererProps = {
   project: ProjectDocument;
@@ -34,6 +43,19 @@ function stringProp(
 function numberProp(node: ProjectNode, key: string, fallback: number): number {
   const value = node.props[key];
   return typeof value === "number" && Number.isFinite(value) ? value : fallback;
+}
+
+function layoutStyleProps(node: ProjectNode) {
+  return {
+    direction: stringProp(node, "direction", "column") as LayoutDirection,
+    wrap: stringProp(node, "wrap", "nowrap") as LayoutWrap,
+    align: stringProp(node, "align", "stretch") as LayoutAlign,
+    justify: stringProp(node, "justify", "start") as LayoutJustify,
+    gap: numberProp(node, "gap", 16),
+    padding: numberProp(node, "padding", 0),
+    heightMode: stringProp(node, "heightMode", "auto") as LayoutHeightMode,
+    height: numberProp(node, "height", 240)
+  };
 }
 
 function childViews({ project, node, breakpoint, showGridOverlay, trail }: {
@@ -123,14 +145,9 @@ function NodeView({
       return <Heading className="poc-heading" data-schema-node={node.id}>{stringProp(node, "text", definition.label)}</Heading>;
     }
     case "Container":
-      return <div className="poc-renderer-container" data-schema-node={node.id}>{children}</div>;
+      return <div className="poc-renderer-container" style={getFlexLayoutStyle({ ...layoutStyleProps(node), padding: numberProp(node, "padding", 16) }) as CSSProperties} data-schema-node={node.id}>{children}</div>;
     case "Flex": {
-      const direction = stringProp(node, "direction", "row");
-      const style = {
-        display: "flex",
-        flexDirection: direction === "column" ? "column" : "row",
-        gap: `${numberProp(node, "gap", 16)}px`
-      } as CSSProperties;
+      const style = getFlexLayoutStyle({ ...layoutStyleProps(node), direction: stringProp(node, "direction", "row") as LayoutDirection }) as CSSProperties;
       return <div className="poc-renderer-flex" style={style} data-schema-node={node.id}>{children}</div>;
     }
     case "Grid": {
@@ -138,8 +155,18 @@ function NodeView({
       const columns = Math.max(1, numberProp(node, "columns", grid.columns));
       const gap = Math.max(0, numberProp(node, "gap", grid.gutter));
       const gridStyle = {
+        ...getGridLayoutStyle({
+          columns,
+          gap,
+          padding: numberProp(node, "padding", 16),
+          align: stringProp(node, "align", "stretch") as LayoutAlign,
+          justify: stringProp(node, "justify", "stretch") as LayoutJustify,
+          heightMode: stringProp(node, "heightMode", "auto") as LayoutHeightMode,
+          height: numberProp(node, "height", 240)
+        }),
         "--poc-grid-columns": columns,
-        "--poc-grid-gap": `${gap}px`
+        "--poc-grid-gap": `${gap}px`,
+        "--poc-grid-padding": `${numberProp(node, "padding", 16)}px`
       } as CSSProperties;
       return (
         <div className="poc-grid poc-renderer-grid" style={gridStyle} data-schema-node={node.id}>

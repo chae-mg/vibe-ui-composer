@@ -56,4 +56,4 @@ AI UI 생성, Prompt-to-UI, 협업, 로그인, 서버 데이터베이스 연결�
 
 ## 현재 상태
 
-Phase 5 Grid System까지 구현을 진행했습니다. `apps/puck-poc`에서 Registry 기반 14개 Component, Registry 제약을 반영한 Puck Slot, 앱 소유 Project JSON v1, 독립 Renderer, Desktop Grid 설정과 Span 제약을 확인할 수 있습니다. Schema 기준은 [SCHEMA_SPEC](./SCHEMA_SPEC.md), Component 정의는 [COMPONENT_CATALOG](./COMPONENT_CATALOG.md), 실행 방법은 [PoC README](./apps/puck-poc/README.md)를 참고하세요. 다음 단계는 Phase 6 Layout Engine입니다.
+Phase 6 Layout Engine까지 구현을 진행했습니다. `apps/puck-poc`에서 Registry 기반 14개 Component, Registry 제약을 반영한 Puck Slot, 앱 소유 Project JSON v1, 독립 Renderer, Desktop Grid 설정과 Flex / Stack / CSS Grid Layout 속성을 확인할 수 있습니다. Schema 기준은 [SCHEMA_SPEC](./SCHEMA_SPEC.md), Component 정의는 [COMPONENT_CATALOG](./COMPONENT_CATALOG.md), 실행 방법은 [PoC README](./apps/puck-poc/README.md)를 참고하세요. 다음 단계는 Phase 7 Properties Panel입니다.

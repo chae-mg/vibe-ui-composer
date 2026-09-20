@@ -27,6 +27,8 @@ Project JSON은 UI Composer가 소유하는 영구 데이터 모델이다. Puck�
 
 `nodes`는 ID를 키로 사용하는 정규화된 Map이다. Parent는 저장하지 않고 각 Node의 `children: string[]`으로 트리를 표현한다. Parent Lookup이 필요하면 Runtime에 계산한다.
 
+Layout 컴포넌트의 편집 속성은 각 Node의 `props`에 저장한다. `Container`는 기본적으로 Column Stack이며, `Flex`는 Row / Column과 Wrap, Align, Justify, Gap, Padding, Height Mode를 지원한다. `Grid`는 Columns와 Gap, Align, Justify, Padding, Height Mode를 지원한다. Puck 편집기와 독립 Renderer는 동일한 속성으로 스타일을 계산한다.
+
 ## Node
 
 각 Node는 다음 필드를 가진다.

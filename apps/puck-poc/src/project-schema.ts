@@ -91,7 +91,16 @@ export function createDefaultProject(): ProjectDocument {
     id: "grid-1",
     type: "Grid",
     children: ["card-1", "card-2"],
-    props: { columns: 12, gap: DEFAULT_GRID.desktop.gutter, showOverlay: true },
+    props: {
+      columns: 12,
+      gap: DEFAULT_GRID.desktop.gutter,
+      padding: 16,
+      align: "stretch",
+      justify: "stretch",
+      heightMode: "auto",
+      height: 240,
+      showOverlay: true
+    },
     layout: { gridSpan: 12 },
     responsive: {}
   };

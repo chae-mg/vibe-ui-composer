@@ -104,20 +104,40 @@ export const componentRegistry: ComponentDefinition[] = [
     label: "Container",
     icon: "container",
     category: "layout",
-    defaultProps: { content: [] },
+    defaultProps: {
+      direction: "column",
+      wrap: "nowrap",
+      align: "stretch",
+      justify: "start",
+      gap: 16,
+      padding: 16,
+      heightMode: "auto",
+      height: 240,
+      content: []
+    },
     defaultStyle: { padding: 16 },
     variants: [],
     allowedChildren: ["Text", "Button", "Heading", "Flex", "Grid", "Card", "Input", "Select", "Badge", "Divider", "Table"],
     canHaveChildren: true,
     resizeRules: { minSpan: 1, maxSpan: 12, snap: "grid" },
-    propertySchema: { content: { type: "slot", allow: ["Text", "Button", "Flex", "Grid", "Card", "Input", "Select", "Badge", "Divider", "Table"] } }
+    propertySchema: {
+      direction: { type: "select", label: "Direction", options: [{ label: "Stack", value: "column" }, { label: "Row", value: "row" }] },
+      wrap: { type: "select", label: "Wrap", options: [{ label: "No wrap", value: "nowrap" }, { label: "Wrap", value: "wrap" }] },
+      align: { type: "select", label: "Align", options: [{ label: "Stretch", value: "stretch" }, { label: "Start", value: "start" }, { label: "Center", value: "center" }, { label: "End", value: "end" }] },
+      justify: { type: "select", label: "Justify", options: [{ label: "Start", value: "start" }, { label: "Center", value: "center" }, { label: "End", value: "end" }, { label: "Between", value: "between" }] },
+      gap: { type: "number", label: "Gap", min: 0, max: 96 },
+      padding: { type: "number", label: "Padding", min: 0, max: 96 },
+      heightMode: { type: "select", label: "Height", options: [{ label: "Auto", value: "auto" }, { label: "Fixed", value: "fixed" }, { label: "Min height", value: "min" }, { label: "Fill", value: "fill" }] },
+      height: { type: "number", label: "Height value", min: 0, max: 1200 },
+      content: { type: "slot", allow: ["Text", "Button", "Flex", "Grid", "Card", "Input", "Select", "Badge", "Divider", "Table"] }
+    }
   },
   {
     type: "Flex",
     label: "Flex",
     icon: "flex",
     category: "layout",
-    defaultProps: { direction: "row", gap: 16, content: [] },
+    defaultProps: { direction: "row", wrap: "nowrap", align: "stretch", justify: "start", gap: 16, padding: 0, heightMode: "auto", height: 240, content: [] },
     defaultStyle: {},
     variants: ["row", "column"],
     allowedChildren: ["Text", "Button", "Card", "Input", "Select", "Badge", "Divider", "Table"],
@@ -125,7 +145,13 @@ export const componentRegistry: ComponentDefinition[] = [
     resizeRules: { minSpan: 1, maxSpan: 12, snap: "grid" },
     propertySchema: {
       direction: { type: "select", label: "Direction", options: [{ label: "Row", value: "row" }, { label: "Column", value: "column" }] },
-      gap: { type: "number", label: "Gap", min: 0, max: 64 },
+      wrap: { type: "select", label: "Wrap", options: [{ label: "No wrap", value: "nowrap" }, { label: "Wrap", value: "wrap" }, { label: "Wrap reverse", value: "wrap-reverse" }] },
+      align: { type: "select", label: "Align", options: [{ label: "Stretch", value: "stretch" }, { label: "Start", value: "start" }, { label: "Center", value: "center" }, { label: "End", value: "end" }] },
+      justify: { type: "select", label: "Justify", options: [{ label: "Start", value: "start" }, { label: "Center", value: "center" }, { label: "End", value: "end" }, { label: "Between", value: "between" }] },
+      gap: { type: "number", label: "Gap", min: 0, max: 96 },
+      padding: { type: "number", label: "Padding", min: 0, max: 96 },
+      heightMode: { type: "select", label: "Height", options: [{ label: "Auto", value: "auto" }, { label: "Fixed", value: "fixed" }, { label: "Min height", value: "min" }, { label: "Fill", value: "fill" }] },
+      height: { type: "number", label: "Height value", min: 0, max: 1200 },
       content: { type: "slot", allow: ["Text", "Button", "Card", "Input", "Select", "Badge", "Divider", "Table"] }
     }
   },
@@ -134,15 +160,20 @@ export const componentRegistry: ComponentDefinition[] = [
     label: "Grid",
     icon: "grid",
     category: "layout",
-    defaultProps: { columns: 12, gap: 24, showOverlay: true, content: [] },
+    defaultProps: { columns: 12, gap: 24, padding: 16, align: "stretch", justify: "stretch", heightMode: "auto", height: 240, showOverlay: true, content: [] },
     defaultStyle: {},
     variants: [],
     allowedChildren: ["Card", "Heading", "Text", "Button", "Input", "Select", "Badge", "Divider", "Table"],
     canHaveChildren: true,
     resizeRules: { minSpan: 1, maxSpan: 12, snap: "grid" },
     propertySchema: {
-      columns: { type: "number", label: "Columns", min: 1, max: 12 },
-      gap: { type: "number", label: "Gap", min: 0, max: 64 },
+      columns: { type: "number", label: "Columns", min: 1, max: 24 },
+      gap: { type: "number", label: "Gap", min: 0, max: 96 },
+      padding: { type: "number", label: "Padding", min: 0, max: 96 },
+      align: { type: "select", label: "Align", options: [{ label: "Stretch", value: "stretch" }, { label: "Start", value: "start" }, { label: "Center", value: "center" }, { label: "End", value: "end" }] },
+      justify: { type: "select", label: "Justify", options: [{ label: "Stretch", value: "stretch" }, { label: "Start", value: "start" }, { label: "Center", value: "center" }, { label: "End", value: "end" }] },
+      heightMode: { type: "select", label: "Height", options: [{ label: "Auto", value: "auto" }, { label: "Fixed", value: "fixed" }, { label: "Min height", value: "min" }, { label: "Fill", value: "fill" }] },
+      height: { type: "number", label: "Height value", min: 0, max: 1200 },
       content: { type: "slot", allow: ["Card", "Text", "Button", "Input", "Select", "Badge", "Divider", "Table"] }
     }
   },

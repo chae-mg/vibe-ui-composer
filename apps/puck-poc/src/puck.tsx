@@ -27,6 +27,15 @@ import {
   getComponentDefinition,
   type ComponentType
 } from "./component-registry";
+import {
+  getFlexLayoutStyle,
+  getGridLayoutStyle,
+  type LayoutAlign,
+  type LayoutDirection,
+  type LayoutHeightMode,
+  type LayoutJustify,
+  type LayoutWrap
+} from "./layout-utils";
 
 const STORAGE_KEY = "ui-composer-puck-poc";
 
@@ -41,6 +50,11 @@ type SectionProps = {
 type GridProps = {
   columns: number;
   gap: number;
+  padding: number;
+  align: LayoutAlign;
+  justify: LayoutJustify;
+  heightMode: LayoutHeightMode;
+  height: number;
   showOverlay: boolean;
   content: Slot;
 };
@@ -52,8 +66,18 @@ type CardProps = {
   mobileSpan: number;
   content: Slot;
 };
-type ContainerProps = { content: Slot };
-type FlexProps = { direction: "row" | "column"; gap: number; content: Slot };
+type ContainerProps = {
+  direction: LayoutDirection;
+  wrap: LayoutWrap;
+  align: LayoutAlign;
+  justify: LayoutJustify;
+  gap: number;
+  padding: number;
+  heightMode: LayoutHeightMode;
+  height: number;
+  content: Slot;
+};
+type FlexProps = Omit<ContainerProps, "direction"> & { direction: LayoutDirection };
 type InputProps = { label: string; placeholder: string; inputType: "text" | "email" | "password" };
 type SelectProps = { label: string; options: string };
 type BadgeProps = { text: string; tone: "success" | "warning" | "danger" | "neutral" };
@@ -176,6 +200,11 @@ const config: Config<Components> = {
       fields: {
         columns: { type: "number", min: 1, max: 24 },
         gap: { type: "number", min: 0, max: 96 },
+        padding: { type: "number", min: 0, max: 96 },
+        align: { type: "select", options: [{ label: "Stretch", value: "stretch" }, { label: "Start", value: "start" }, { label: "Center", value: "center" }, { label: "End", value: "end" }] },
+        justify: { type: "select", options: [{ label: "Stretch", value: "stretch" }, { label: "Start", value: "start" }, { label: "Center", value: "center" }, { label: "End", value: "end" }] },
+        heightMode: { type: "select", options: [{ label: "Auto", value: "auto" }, { label: "Fixed", value: "fixed" }, { label: "Min height", value: "min" }, { label: "Fill", value: "fill" }] },
+        height: { type: "number", min: 0, max: 1200 },
         showOverlay: {
           type: "radio",
           options: [
@@ -189,10 +218,12 @@ const config: Config<Components> = {
         }
       },
       defaultProps: registryProps("Grid") as GridProps,
-      render: ({ columns, gap, showOverlay, content: Content }) => {
+      render: ({ columns, gap, padding, align, justify, heightMode, height, showOverlay, content: Content }) => {
         const gridStyle = {
+          ...getGridLayoutStyle({ columns, gap, padding, align, justify, heightMode, height }),
           "--poc-grid-columns": columns,
-          "--poc-grid-gap": `${gap}px`
+          "--poc-grid-gap": `${gap}px`,
+          "--poc-grid-padding": `${padding}px`
         } as CSSProperties;
 
         return (
@@ -240,21 +271,37 @@ const config: Config<Components> = {
     ContainerBlock: {
       label: getComponentDefinition("Container")?.label ?? "Container",
       fields: {
+        direction: { type: "select", options: [{ label: "Stack", value: "column" }, { label: "Row", value: "row" }] },
+        wrap: { type: "select", options: [{ label: "No wrap", value: "nowrap" }, { label: "Wrap", value: "wrap" }] },
+        align: { type: "select", options: [{ label: "Stretch", value: "stretch" }, { label: "Start", value: "start" }, { label: "Center", value: "center" }, { label: "End", value: "end" }] },
+        justify: { type: "select", options: [{ label: "Start", value: "start" }, { label: "Center", value: "center" }, { label: "End", value: "end" }, { label: "Between", value: "between" }] },
+        gap: { type: "number", min: 0, max: 96 },
+        padding: { type: "number", min: 0, max: 96 },
+        heightMode: { type: "select", options: [{ label: "Auto", value: "auto" }, { label: "Fixed", value: "fixed" }, { label: "Min height", value: "min" }, { label: "Fill", value: "fill" }] },
+        height: { type: "number", min: 0, max: 1200 },
         content: { type: "slot", allow: slotAllow("Container") }
       },
       defaultProps: registryProps("Container") as ContainerProps,
-      render: ({ content: Content }) => <div className="poc-renderer-container"><Content className="poc-slot" /></div>
+      render: ({ direction = "column", wrap = "nowrap", align = "stretch", justify = "start", gap = 16, padding = 16, heightMode = "auto", height = 240, content: Content }) => (
+        <div className="poc-renderer-container" style={getFlexLayoutStyle({ direction, wrap, align, justify, gap, padding, heightMode, height }) as CSSProperties}><Content className="poc-slot" /></div>
+      )
     },
     FlexBlock: {
       label: getComponentDefinition("Flex")?.label ?? "Flex",
       fields: {
         direction: { type: "select", options: [{ label: "Row", value: "row" }, { label: "Column", value: "column" }] },
-        gap: { type: "number", min: 0, max: 64 },
+        wrap: { type: "select", options: [{ label: "No wrap", value: "nowrap" }, { label: "Wrap", value: "wrap" }, { label: "Wrap reverse", value: "wrap-reverse" }] },
+        align: { type: "select", options: [{ label: "Stretch", value: "stretch" }, { label: "Start", value: "start" }, { label: "Center", value: "center" }, { label: "End", value: "end" }] },
+        justify: { type: "select", options: [{ label: "Start", value: "start" }, { label: "Center", value: "center" }, { label: "End", value: "end" }, { label: "Between", value: "between" }] },
+        gap: { type: "number", min: 0, max: 96 },
+        padding: { type: "number", min: 0, max: 96 },
+        heightMode: { type: "select", options: [{ label: "Auto", value: "auto" }, { label: "Fixed", value: "fixed" }, { label: "Min height", value: "min" }, { label: "Fill", value: "fill" }] },
+        height: { type: "number", min: 0, max: 1200 },
         content: { type: "slot", allow: slotAllow("Flex") }
       },
       defaultProps: registryProps("Flex") as FlexProps,
-      render: ({ direction, gap, content: Content }) => (
-        <div className="poc-renderer-flex" style={{ display: "flex", flexDirection: direction, gap: `${gap}px` }}><Content className="poc-slot" /></div>
+      render: ({ direction = "row", wrap = "nowrap", align = "stretch", justify = "start", gap = 16, padding = 0, heightMode = "auto", height = 240, content: Content }) => (
+        <div className="poc-renderer-flex" style={getFlexLayoutStyle({ direction, wrap, align, justify, gap, padding, heightMode, height }) as CSSProperties}><Content className="poc-slot" /></div>
       )
     },
     InputBlock: {
@@ -400,10 +447,10 @@ export function Puck() {
   return (
     <div className="poc-shell">
       <div className="poc-status" aria-live="polite">
-        <span>Phase 5 · grid system validation</span>
+        <span>Phase 6 · layout engine validation</span>
         <span>
           {validationPassed
-            ? `Grid ✓ · Canvas DnD ✓ · Registry ✓ · ${componentRegistry.length} components · ${Object.keys(currentProject.nodes).length} nodes`
+            ? `Layout ✓ · Grid ✓ · Canvas DnD ✓ · Registry ✓ · ${componentRegistry.length} components · ${Object.keys(currentProject.nodes).length} nodes`
             : "Schema adapter needs review"}
           {savedAt ? " · Saved " + savedAt : ""}
         </span>

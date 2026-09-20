@@ -1,6 +1,6 @@
 # Puck PoC
 
-Phase 0~5 검증을 위한 Registry 기반 Puck Editor와 독립 Project Renderer 앱입니다.
+Phase 0~6 검증을 위한 Registry 기반 Puck Editor와 독립 Project Renderer 앱입니다.
 
 ## 검증 범위
 
@@ -21,6 +21,10 @@ Phase 0~5 검증을 위한 Registry 기반 Puck Editor와 독립 Project Rendere
 - Desktop 4 / 6 / 8 / 12 / 16-column Grid Preset
 - Gutter / Outer Margin 설정과 Grid Overlay 토글
 - Component Grid Span의 Column Snap 및 Registry Min / Max clamp
+- Container를 Stack으로 사용하는 Column Layout
+- Flex Row / Column, Wrap, Align, Justify, Gap, Padding, Height Mode
+- CSS Grid Columns, Align, Justify, Gap, Padding, Height Mode
+- Puck Canvas와 독립 Renderer가 공유하는 Layout Style 변환
 - 알 수 없는 Node Type의 안전한 placeholder 처리
 
 ## 실행

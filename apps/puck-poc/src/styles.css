@@ -149,7 +149,7 @@ body { min-height: 100vh; }
   grid-template-columns: repeat(var(--poc-grid-columns), minmax(0, 1fr));
   gap: var(--poc-grid-gap);
   min-height: 160px;
-  padding: 16px;
+  padding: var(--poc-grid-padding, 16px);
   border: 1px solid #d8deea;
   border-radius: 12px;
   background: #f8faff;
@@ -160,7 +160,7 @@ body { min-height: 100vh; }
   display: grid;
   grid-template-columns: repeat(var(--poc-grid-columns), minmax(0, 1fr));
   gap: var(--poc-grid-gap);
-  padding: 16px;
+  padding: var(--poc-grid-padding, 16px);
   pointer-events: none;
   opacity: .7;
 }
