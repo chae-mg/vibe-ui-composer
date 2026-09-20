@@ -16,6 +16,7 @@ import {
   type LayoutJustify,
   type LayoutWrap
 } from "./layout-utils";
+import { getAppearanceStyle, type AppearanceShadow } from "./appearance-utils";
 
 export type ProjectRendererProps = {
   project: ProjectDocument;
@@ -132,6 +133,13 @@ function NodeView({
       return (
         <section
           className={`poc-section poc-section--${tone}`}
+          style={getAppearanceStyle({
+            background: stringProp(node, "background", ""),
+            textColor: stringProp(node, "textColor", ""),
+            border: stringProp(node, "border", ""),
+            radius: numberProp(node, "radius", 16),
+            shadow: stringProp(node, "shadow", "none") as AppearanceShadow
+          }) as CSSProperties}
           data-schema-node={node.id}
         >
           <h2>{stringProp(node, "title", "Section")}</h2>
@@ -183,7 +191,13 @@ function NodeView({
       const grid = getGridSettings(project, breakpoint);
       const span = Math.min(grid.columns, Math.max(1, getResponsiveGridSpan(node, breakpoint)));
       return (
-        <article className="poc-card" style={{ gridColumn: `span ${span}` }} data-schema-node={node.id}>
+        <article className="poc-card" style={{ gridColumn: `span ${span}`, ...getAppearanceStyle({
+          background: stringProp(node, "background", ""),
+          textColor: stringProp(node, "textColor", ""),
+          border: stringProp(node, "border", ""),
+          radius: numberProp(node, "radius", 12),
+          shadow: stringProp(node, "shadow", "sm") as AppearanceShadow
+        }) }} data-schema-node={node.id}>
           <strong>{stringProp(node, "title", "Card")}</strong>
           <span className="poc-card-value">{stringProp(node, "body", "Card content")}</span>
           <div className="poc-card-content poc-slot">{children}</div>

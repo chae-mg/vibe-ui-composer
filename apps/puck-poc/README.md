@@ -1,6 +1,6 @@
 # Puck PoC
 
-Phase 0~6 검증을 위한 Registry 기반 Puck Editor와 독립 Project Renderer 앱입니다.
+Phase 0~7 검증을 위한 Registry 기반 Puck Editor와 독립 Project Renderer 앱입니다.
 
 ## 검증 범위
 
@@ -25,6 +25,9 @@ Phase 0~6 검증을 위한 Registry 기반 Puck Editor와 독립 Project Rendere
 - Flex Row / Column, Wrap, Align, Justify, Gap, Padding, Height Mode
 - CSS Grid Columns, Align, Justify, Gap, Padding, Height Mode
 - Puck Canvas와 독립 Renderer가 공유하는 Layout Style 변환
+- 선택 Component를 위한 Layout / Size / Spacing / Typography / Appearance / Props 탭
+- Registry propertySchema에서 생성되는 Properties Panel 필드
+- Properties 변경 시 Puck Data와 Project JSON 자동 저장
 - 알 수 없는 Node Type의 안전한 placeholder 처리
 
 ## 실행

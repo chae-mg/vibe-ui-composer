@@ -80,7 +80,7 @@ export const componentRegistry: ComponentDefinition[] = [
     label: "Section",
     icon: "section",
     category: "layout",
-    defaultProps: { title: "Section", tone: "surface", content: [] },
+    defaultProps: { title: "Section", tone: "surface", background: "#ffffff", textColor: "#172033", border: "#d8deea", radius: 16, shadow: "none", content: [] },
     defaultStyle: { radius: 16, padding: 24 },
     variants: ["surface", "accent"],
     allowedChildren: ["Heading", "Text", "Button", "Container", "Flex", "Grid", "Card", "Input", "Select", "Badge", "Divider", "Table"],
@@ -96,6 +96,11 @@ export const componentRegistry: ComponentDefinition[] = [
           { label: "Accent", value: "accent" }
         ]
       },
+      background: { type: "text", label: "Background" },
+      textColor: { type: "text", label: "Text color" },
+      border: { type: "text", label: "Border color" },
+      radius: { type: "number", label: "Radius", min: 0, max: 48 },
+      shadow: { type: "select", label: "Shadow", options: [{ label: "None", value: "none" }, { label: "Small", value: "sm" }, { label: "Medium", value: "md" }, { label: "Large", value: "lg" }] },
       content: { type: "slot", allow: ["Text", "Button", "Container", "Flex", "Grid", "Card", "Input", "Select", "Badge", "Divider", "Table"] }
     }
   },
@@ -182,7 +187,7 @@ export const componentRegistry: ComponentDefinition[] = [
     label: "Card",
     icon: "card",
     category: "layout",
-    defaultProps: { title: "Card", body: "Card content", span: 6, tabletSpan: 6, mobileSpan: 4, content: [] },
+    defaultProps: { title: "Card", body: "Card content", span: 6, tabletSpan: 6, mobileSpan: 4, background: "#ffffff", textColor: "#172033", border: "#dce3ef", radius: 12, shadow: "sm", content: [] },
     defaultStyle: { radius: 12, padding: 16 },
     variants: [],
     allowedChildren: ["Text", "Button", "Badge", "Divider"],
@@ -194,6 +199,11 @@ export const componentRegistry: ComponentDefinition[] = [
       span: { type: "number", label: "Desktop span", min: 1, max: 12 },
       tabletSpan: { type: "number", label: "Tablet span", min: 1, max: 8 },
       mobileSpan: { type: "number", label: "Mobile span", min: 1, max: 4 },
+      background: { type: "text", label: "Background" },
+      textColor: { type: "text", label: "Text color" },
+      border: { type: "text", label: "Border color" },
+      radius: { type: "number", label: "Radius", min: 0, max: 48 },
+      shadow: { type: "select", label: "Shadow", options: [{ label: "None", value: "none" }, { label: "Small", value: "sm" }, { label: "Medium", value: "md" }, { label: "Large", value: "lg" }] },
       content: { type: "slot", allow: ["Text", "Button", "Badge", "Divider"] }
     }
   },

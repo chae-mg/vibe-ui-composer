@@ -1,11 +1,13 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from "react";
 import {
   Puck as PuckEditor,
+  AutoField,
+  usePuck,
   type Config,
   type Data,
-  type Slot
+  type Slot,
+  type Field
 } from "@puckeditor/core";
-import type { CSSProperties } from "react";
 import {
   createDefaultProject,
   type ProjectDocument
@@ -36,6 +38,7 @@ import {
   type LayoutJustify,
   type LayoutWrap
 } from "./layout-utils";
+import { getAppearanceStyle, type AppearanceShadow } from "./appearance-utils";
 
 const STORAGE_KEY = "ui-composer-puck-poc";
 
@@ -45,6 +48,11 @@ type ButtonProps = { label: string; variant: "primary" | "secondary" };
 type SectionProps = {
   title: string;
   tone: "surface" | "accent";
+  background?: string;
+  textColor?: string;
+  border?: string;
+  radius?: number;
+  shadow?: AppearanceShadow;
   content: Slot;
 };
 type GridProps = {
@@ -64,6 +72,11 @@ type CardProps = {
   span: number;
   tabletSpan: number;
   mobileSpan: number;
+  background?: string;
+  textColor?: string;
+  border?: string;
+  radius?: number;
+  shadow?: AppearanceShadow;
   content: Slot;
 };
 type ContainerProps = {
@@ -182,14 +195,19 @@ const config: Config<Components> = {
             { label: "Accent", value: "accent" }
           ]
         },
+        background: { type: "text" },
+        textColor: { type: "text" },
+        border: { type: "text" },
+        radius: { type: "number", min: 0, max: 48 },
+        shadow: { type: "select", options: [{ label: "None", value: "none" }, { label: "Small", value: "sm" }, { label: "Medium", value: "md" }, { label: "Large", value: "lg" }] },
         content: {
           type: "slot",
           allow: slotAllow("Section")
         }
       },
       defaultProps: registryProps("Section") as SectionProps,
-      render: ({ title, tone, content: Content }) => (
-        <section className={"poc-section poc-section--" + tone}>
+      render: ({ title, tone, background, textColor, border, radius, shadow, content: Content }) => (
+        <section className={"poc-section poc-section--" + tone} style={getAppearanceStyle({ background, textColor, border, radius, shadow }) as CSSProperties}>
           <h2>{title}</h2>
           <Content className="poc-slot" />
         </section>
@@ -249,17 +267,23 @@ const config: Config<Components> = {
         span: { type: "number", min: 1, max: 12 },
         tabletSpan: { type: "number", min: 1, max: 8 },
         mobileSpan: { type: "number", min: 1, max: 4 },
+        background: { type: "text" },
+        textColor: { type: "text" },
+        border: { type: "text" },
+        radius: { type: "number", min: 0, max: 48 },
+        shadow: { type: "select", options: [{ label: "None", value: "none" }, { label: "Small", value: "sm" }, { label: "Medium", value: "md" }, { label: "Large", value: "lg" }] },
         content: { type: "slot", allow: slotAllow("Card") }
       },
       defaultProps: registryProps("Card") as CardProps,
-      render: ({ title, body, span, tabletSpan, mobileSpan, content: Content, puck }) => (
+      render: ({ title, body, span, tabletSpan, mobileSpan, background, textColor, border, radius, shadow, content: Content, puck }) => (
         <article
           ref={puck.dragRef}
           className="poc-card"
           style={{
             gridColumn: `span ${span}`,
             "--poc-card-span-tablet": tabletSpan,
-            "--poc-card-span-mobile": mobileSpan
+            "--poc-card-span-mobile": mobileSpan,
+            ...getAppearanceStyle({ background, textColor, border, radius, shadow })
           } as CSSProperties}
         >
           <strong>{title}</strong>
@@ -366,6 +390,132 @@ type StoredState = {
   project?: ProjectDocument;
 };
 
+type PropertyTab = "Layout" | "Size" | "Spacing" | "Typography" | "Appearance" | "Props";
+
+const PROPERTY_TABS: PropertyTab[] = ["Layout", "Size", "Spacing", "Typography", "Appearance", "Props"];
+const LAYOUT_PROPERTIES = new Set(["direction", "wrap", "align", "justify", "columns", "showOverlay"]);
+const SIZE_PROPERTIES = new Set(["heightMode", "height", "span", "tabletSpan", "mobileSpan"]);
+const SPACING_PROPERTIES = new Set(["gap", "padding"]);
+const TYPOGRAPHY_PROPERTIES = new Set(["text", "level", "title", "label", "body", "variant", "tone", "orientation", "options", "columns"]);
+const APPEARANCE_PROPERTIES = new Set(["background", "textColor", "border", "radius", "shadow"]);
+
+function getPropertyTab(name: string): PropertyTab {
+  if (LAYOUT_PROPERTIES.has(name)) return "Layout";
+  if (SIZE_PROPERTIES.has(name)) return "Size";
+  if (SPACING_PROPERTIES.has(name)) return "Spacing";
+  if (TYPOGRAPHY_PROPERTIES.has(name)) return "Typography";
+  if (APPEARANCE_PROPERTIES.has(name)) return "Appearance";
+  return "Props";
+}
+
+function humanizePropertyName(name: string): string {
+  return name
+    .replace(/([a-z])([A-Z])/g, "$1 $2")
+    .replace(/^./, (value) => value.toUpperCase());
+}
+
+function updatePuckDataValue(data: Data, targetId: string | null, name: string, value: unknown): Data {
+  const updateContent = (content: Array<Record<string, any>>): Array<Record<string, any>> => content.map((item) => {
+    const props = item.props ?? {};
+    const nextProps = item.props?.id === targetId ? { ...props, [name]: value } : props;
+    const nestedProps = Object.fromEntries(
+      Object.entries(nextProps).map(([key, propValue]) => [
+        key,
+        Array.isArray(propValue) && propValue.every((child) => child && typeof child === "object" && "type" in child)
+          ? updateContent(propValue as Array<Record<string, any>>)
+          : propValue
+      ])
+    );
+    return { ...item, props: nestedProps };
+  });
+
+  return {
+    ...data,
+    root: targetId === null
+      ? { ...data.root, props: { ...data.root?.props, [name]: value } }
+      : data.root,
+    content: updateContent((data.content ?? []) as Array<Record<string, any>>) as Data["content"]
+  };
+}
+
+function PropertiesPanel({ children, isLoading }: { children: ReactNode; isLoading: boolean }) {
+  const { selectedItem, appState, config: puckConfig, dispatch } = usePuck();
+  const [activeTab, setActiveTab] = useState<PropertyTab>("Layout");
+  const itemType = selectedItem?.type ?? "root";
+  const targetId = typeof selectedItem?.props?.id === "string" ? selectedItem.props.id : null;
+  const itemProps = selectedItem?.props ?? appState.data.root?.props ?? {};
+  const fieldsByName = itemType === "root"
+    ? (puckConfig.root?.fields ?? {})
+    : ((puckConfig.components as Record<string, { fields?: Record<string, Field> }>)[itemType]?.fields ?? {});
+  const registryType = Object.entries(PROJECT_TO_PUCK_COMPONENT).find(([, puckType]) => puckType === itemType)?.[0] as ComponentType | undefined;
+  const registrySchema = registryType ? getComponentDefinition(registryType)?.propertySchema : undefined;
+  const fields = Object.entries(fieldsByName).filter(([name, field]) => field.type !== "slot" && field.visible !== false);
+
+  useEffect(() => {
+    setActiveTab("Layout");
+  }, [itemType, targetId]);
+
+  const visibleFields = fields.filter(([name]) => getPropertyTab(name) === activeTab);
+  const onFieldChange = (name: string, value: unknown) => {
+    dispatch({
+      type: "setData",
+      recordHistory: true,
+      data: (previous) => updatePuckDataValue(previous, targetId, name, value)
+    });
+  };
+
+  return (
+    <div className="poc-properties-panel" aria-label="Properties panel">
+      <div className="poc-properties-panel__header">
+        <div>
+          <strong>Properties</strong>
+          <span>{itemType === "root" ? "Page" : registryType ? getComponentDefinition(registryType)?.label : itemType}</span>
+        </div>
+        <span className="poc-properties-panel__count">{fields.length} fields</span>
+      </div>
+      {isLoading ? <div className="poc-properties-panel__empty">Loading properties…</div> : null}
+      <div className="poc-properties-panel__tabs" role="tablist" aria-label="Property categories">
+        {PROPERTY_TABS.map((tab) => (
+          <button
+            key={tab}
+            type="button"
+            role="tab"
+            aria-selected={activeTab === tab}
+            className={activeTab === tab ? "is-active" : ""}
+            onClick={() => setActiveTab(tab)}
+          >
+            {tab}
+          </button>
+        ))}
+      </div>
+      {visibleFields.length > 0 ? (
+        <div className="poc-properties-panel__fields">
+          {visibleFields.map(([name, rawField]) => {
+            const field = {
+              ...rawField,
+              label: rawField.label ?? registrySchema?.[name]?.label ?? humanizePropertyName(name)
+            } as Field;
+            return (
+              <AutoField
+                key={name}
+                id={`property-${targetId ?? "root"}-${name}`}
+                field={field as any}
+                value={(itemProps as Record<string, unknown>)[name]}
+                onChange={(value) => onFieldChange(name, value)}
+              />
+            );
+          })}
+        </div>
+      ) : (
+        <div className="poc-properties-panel__empty">
+          {fields.length > 0 ? `${activeTab} 속성이 없습니다.` : "편집 가능한 속성이 없습니다."}
+        </div>
+      )}
+      {fields.length === 0 ? <div className="poc-properties-panel__fallback">{children}</div> : null}
+    </div>
+  );
+}
+
 function loadStoredState(): StoredState {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
@@ -447,10 +597,10 @@ export function Puck() {
   return (
     <div className="poc-shell">
       <div className="poc-status" aria-live="polite">
-        <span>Phase 6 · layout engine validation</span>
+        <span>Phase 7 · properties panel validation</span>
         <span>
           {validationPassed
-            ? `Layout ✓ · Grid ✓ · Canvas DnD ✓ · Registry ✓ · ${componentRegistry.length} components · ${Object.keys(currentProject.nodes).length} nodes`
+            ? `Properties ✓ · Layout ✓ · Grid ✓ · Canvas DnD ✓ · Registry ✓ · ${componentRegistry.length} components · ${Object.keys(currentProject.nodes).length} nodes`
             : "Schema adapter needs review"}
           {savedAt ? " · Saved " + savedAt : ""}
         </span>
@@ -519,6 +669,7 @@ export function Puck() {
         config={config}
         data={editorData}
         ui={{ leftSideBarVisible: true, rightSideBarVisible: true }}
+        overrides={{ fields: PropertiesPanel }}
         onChange={persist}
         onPublish={persist}
         headerTitle="UI Composer PoC"
