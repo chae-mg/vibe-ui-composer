@@ -1,7 +1,7 @@
 # Phase 10 Result
 
 Date: 2026-09-20
-Status: PARTIAL
+Status: PASS
 
 ## Implemented
 
@@ -20,10 +20,12 @@ Status: PARTIAL
 - Passed: `git diff --check`
 - Passed: 로컬 Block Library에서 KPI Section을 삽입해 Node 수가 5개에서 10개로 증가하는 것을 확인했다.
 - Passed: 같은 KPI Section을 다시 삽입해 Node 수가 15개로 증가하고 Canvas에 반복 Block이 표시되는 것을 확인했다.
+- Passed: Sidebar Navigation, Page Header, KPI Section, Search + Filter 4종을 순서대로 삽입했다.
 - Passed: Sidebar + Main과 Header + Content Layout Preset 적용 시 Canvas 구조가 즉시 교체되는 것을 확인했다.
 - Passed: Blank Preset 적용 후 빈 Page root가 표시되는 것을 확인했다.
 - Passed: Header + Content 적용 후 생성된 Heading을 선택해 Properties 패널이 갱신되는 것을 확인했다.
-- Pending: GitHub Actions build and deploy job과 공개 GitHub Pages 확인
+- Passed: GitHub Actions build and deploy jobs (run 35495926234; deploy retry succeeded)
+- Passed: 공개 GitHub Pages에서 Phase 10 상태, Block Library 4종, Layout Preset 3종을 확인했다.
 
 ## Known Issues
 
