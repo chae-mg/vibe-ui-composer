@@ -26,6 +26,7 @@ import {
   GRID_COLUMN_PRESETS,
   duplicateSubtree,
   removeSubtree,
+  reorderChildren,
   setNodeLocked,
   setGridOverlay,
   updateGridSettings
@@ -576,8 +577,102 @@ function updatePuckDataValue(data: Data, targetId: string | null, name: string, 
   };
 }
 
+function getStructureNodeLabel(node: ProjectNode): string {
+  return getComponentDefinition(node.type)?.label ?? node.type;
+}
+
+type StructureTreeProps = {
+  project: ProjectDocument;
+  nodeId: string;
+  depth: number;
+  expandedNodeIds: Set<string>;
+  selectedNodeId: string;
+  onToggle: (nodeId: string) => void;
+  onSelect: (nodeId: string) => void;
+  onMove: (nodeId: string, direction: -1 | 1) => void;
+};
+
+function StructureTree({
+  project,
+  nodeId,
+  depth,
+  expandedNodeIds,
+  selectedNodeId,
+  onToggle,
+  onSelect,
+  onMove
+}: StructureTreeProps) {
+  const node = project.nodes[nodeId];
+  if (!node) return null;
+  const label = getStructureNodeLabel(node);
+  const parent = findParentNode(project, nodeId);
+  const nodeIndex = parent?.children.indexOf(nodeId) ?? -1;
+  const expanded = expandedNodeIds.has(nodeId);
+  const canMove = Boolean(parent && !parent.locked && !node.locked);
+
+  return (
+    <div className="poc-structure-tree__branch" role="treeitem" aria-level={depth + 1} aria-selected={selectedNodeId === nodeId}>
+      <div className={`poc-structure-tree__row${selectedNodeId === nodeId ? " is-selected" : ""}`} style={{ paddingLeft: `${depth * 18 + 6}px` }}>
+        {node.children.length > 0 ? (
+          <button
+            className="poc-structure-tree__toggle"
+            type="button"
+            aria-label={`${expanded ? "Collapse" : "Expand"} ${label}`}
+            aria-expanded={expanded}
+            onClick={() => onToggle(nodeId)}
+          >
+            {expanded ? "▾" : "▸"}
+          </button>
+        ) : <span className="poc-structure-tree__toggle-placeholder" aria-hidden="true" />}
+        <button className="poc-structure-tree__node" type="button" onClick={() => onSelect(nodeId)}>
+          <span className="poc-structure-tree__node-label">{label}</span>
+          <span className="poc-structure-tree__node-id">{node.id}</span>
+          {node.locked ? <span className="poc-structure-tree__lock" title="Locked" aria-label="Locked">🔒</span> : null}
+        </button>
+        {parent ? (
+          <span className="poc-structure-tree__move-actions">
+            <button
+              type="button"
+              aria-label={`Move ${label} up`}
+              disabled={!canMove || nodeIndex <= 0}
+              onClick={() => onMove(nodeId, -1)}
+            >
+              ↑
+            </button>
+            <button
+              type="button"
+              aria-label={`Move ${label} down`}
+              disabled={!canMove || nodeIndex >= parent.children.length - 1}
+              onClick={() => onMove(nodeId, 1)}
+            >
+              ↓
+            </button>
+          </span>
+        ) : null}
+      </div>
+      {expanded && node.children.length > 0 ? (
+        <div className="poc-structure-tree__children" role="group">
+          {node.children.map((childId) => (
+            <StructureTree
+              key={childId}
+              project={project}
+              nodeId={childId}
+              depth={depth + 1}
+              expandedNodeIds={expandedNodeIds}
+              selectedNodeId={selectedNodeId}
+              onToggle={onToggle}
+              onSelect={onSelect}
+              onMove={onMove}
+            />
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 function PropertiesPanel({ children, isLoading }: { children: ReactNode; isLoading: boolean }) {
-  const { selectedItem, appState, config: puckConfig, dispatch } = usePuck();
+  const { selectedItem, appState, config: puckConfig, dispatch, getSelectorForId } = usePuck();
   const [activeTab, setActiveTab] = useState<PropertyTab>("Layout");
   const itemType = selectedItem?.type ?? "root";
   const targetId = typeof selectedItem?.props?.id === "string" ? selectedItem.props.id : null;
@@ -599,6 +694,20 @@ function PropertiesPanel({ children, isLoading }: { children: ReactNode; isLoadi
       detail: { nodeId: targetId, itemType }
     }));
   }, [itemType, targetId]);
+
+  useEffect(() => {
+    const handleTreeSelection = (event: Event) => {
+      const detail = (event as CustomEvent<{ nodeId?: string | null }>).detail;
+      if (!detail?.nodeId) {
+        dispatch({ type: "setUi", ui: { itemSelector: null } });
+        return;
+      }
+      const selector = getSelectorForId(detail.nodeId);
+      if (selector) dispatch({ type: "setUi", ui: { itemSelector: selector } });
+    };
+    window.addEventListener("poc-tree-selection", handleTreeSelection);
+    return () => window.removeEventListener("poc-tree-selection", handleTreeSelection);
+  }, [dispatch, getSelectorForId]);
 
   const visibleFields = fields.filter(([name]) => getPropertyTab(name) === activeTab);
   const onFieldChange = (name: string, value: unknown) => {
@@ -712,6 +821,9 @@ export function Puck() {
     ),
     [initialData, storedState.project]
   );
+  const [expandedNodeIds, setExpandedNodeIds] = useState<Set<string>>(
+    () => new Set(Object.values(initialProject.nodes).filter((node) => node.children.length > 0).map((node) => node.id))
+  );
   const [currentProject, setCurrentProject] = useState(initialProject);
   const [editorData, setEditorData] = useState(initialData);
   const initialGridOverlay = useMemo(() => {
@@ -822,6 +934,31 @@ export function Puck() {
     persistProject(setNodeLocked(currentProject, selectedNodeId, !selectedNodeLocked));
   };
 
+  const toggleStructureNode = (nodeId: string) => {
+    setExpandedNodeIds((current) => {
+      const next = new Set(current);
+      if (next.has(nodeId)) next.delete(nodeId);
+      else next.add(nodeId);
+      return next;
+    });
+  };
+
+  const selectStructureNode = (nodeId: string) => {
+    const nextNodeId = nodeId === currentProject.rootId ? null : nodeId;
+    setSelectedNodeId(nextNodeId);
+    window.dispatchEvent(new CustomEvent("poc-tree-selection", { detail: { nodeId: nextNodeId } }));
+  };
+
+  const moveStructureNode = (nodeId: string, direction: -1 | 1) => {
+    const parent = findParentNode(currentProject, nodeId);
+    if (!parent || parent.locked || currentProject.nodes[nodeId]?.locked) return;
+    const fromIndex = parent.children.indexOf(nodeId);
+    const toIndex = fromIndex + direction;
+    const nextProject = reorderChildren(currentProject, parent.id, fromIndex, toIndex);
+    if (!projectsDiffer(currentProject, nextProject)) return;
+    persistProject(nextProject);
+  };
+
   const updateResponsiveGrid = (patch: Partial<GridSettings>) => {
     persistProject(updateGridSettings(currentProject, previewBreakpoint, patch));
   };
@@ -861,10 +998,10 @@ export function Puck() {
   return (
     <div className="poc-shell" style={getThemeStyleVars(currentProject.theme, currentProject.style) as CSSProperties}>
       <div className="poc-status" aria-live="polite">
-        <span>Phase 12 · history and basic editing</span>
+        <span>Phase 13 · structure panel</span>
         <span>
           {validationPassed
-            ? `History ✓ · Editing ✓ · Lock ✓ · Responsive ✓ · Override ✓ · Auto Stack ✓ · Blocks ✓ · Layout ✓ · Grid ✓ · Canvas DnD ✓ · Registry ✓ · ${componentRegistry.length} components · ${Object.keys(currentProject.nodes).length} nodes`
+            ? `Structure ✓ · Tree Sync ✓ · Reorder ✓ · Lock ✓ · History ✓ · Editing ✓ · Responsive ✓ · Override ✓ · Auto Stack ✓ · Blocks ✓ · Layout ✓ · Grid ✓ · Canvas DnD ✓ · Registry ✓ · ${componentRegistry.length} components · ${Object.keys(currentProject.nodes).length} nodes`
             : "Schema adapter needs review"}
           {savedAt ? " · Saved " + savedAt : ""}
         </span>
@@ -897,6 +1034,27 @@ export function Puck() {
           {selectedNode ? `${selectedNode.type}${selectedNodeLocked ? " · Locked" : " · Editable"}` : "Select a block to edit"}
         </span>
       </div>
+      <section className="poc-structure-panel" aria-label="Structure panel">
+        <div className="poc-structure-panel__header">
+          <div>
+            <strong>Structure</strong>
+            <span>Project Node Tree</span>
+          </div>
+          <span>{Object.keys(currentProject.nodes).length} nodes</span>
+        </div>
+        <div className="poc-structure-tree" role="tree" aria-label="Project structure tree">
+          <StructureTree
+            project={currentProject}
+            nodeId={currentProject.rootId}
+            depth={0}
+            expandedNodeIds={expandedNodeIds}
+            selectedNodeId={selectedNodeId ?? currentProject.rootId}
+            onToggle={toggleStructureNode}
+            onSelect={selectStructureNode}
+            onMove={moveStructureNode}
+          />
+        </div>
+      </section>
       <div className="poc-block-toolbar" aria-label="Block library and layout presets">
         <div className="poc-block-toolbar__group">
           <strong>Block Library</strong>

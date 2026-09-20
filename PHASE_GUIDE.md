@@ -567,10 +567,10 @@ Node Tree에서 화면 구조를 관리한다.
 - 대규모 Tree 최적화
 
 ## 테스트
-- [ ] Canvas 선택과 Tree 선택이 동기화된다.
-- [ ] Tree Reorder가 Canvas에 반영된다.
-- [ ] Nested 구조가 정확히 표시된다.
-- [ ] Lock 상태가 표시된다.
+- [x] Canvas 선택과 Tree 선택이 동기화된다.
+- [x] Tree Reorder가 Canvas에 반영된다.
+- [x] Nested 구조가 정확히 표시된다.
+- [x] Lock 상태가 표시된다.
 
 ## 완료 조건
 Canvas를 클릭하지 않고도 모든 Node를 탐색할 수 있으면 PASS.

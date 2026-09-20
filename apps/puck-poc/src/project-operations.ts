@@ -78,7 +78,8 @@ export function reorderChildren(
   toIndex: number
 ): ProjectDocument {
   const parent = project.nodes[parentId];
-  if (!parent || fromIndex < 0 || toIndex < 0 || fromIndex >= parent.children.length || toIndex >= parent.children.length) {
+  const movedNode = parent ? project.nodes[parent.children[fromIndex]] : undefined;
+  if (!parent || parent.locked || movedNode?.locked || fromIndex < 0 || toIndex < 0 || fromIndex >= parent.children.length || toIndex >= parent.children.length) {
     return project;
   }
   const children = [...parent.children];

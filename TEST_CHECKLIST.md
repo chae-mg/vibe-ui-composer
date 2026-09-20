@@ -173,11 +173,11 @@ GitHub Pages 배포 전 전체 실행한다.
 # K. Structure Panel
 
 ## Regression
-- [ ] Node Tree가 실제 구조와 일치한다.
-- [ ] Tree 선택과 Canvas 선택이 동기화된다.
-- [ ] Tree Reorder가 Canvas에 반영된다.
-- [ ] Expand / Collapse가 동작한다.
-- [ ] Lock 상태가 표시된다.
+- [x] Node Tree가 실제 구조와 일치한다.
+- [x] Tree 선택과 Canvas 선택이 동기화된다.
+- [x] Tree Reorder가 Canvas에 반영된다.
+- [x] Expand / Collapse가 동작한다.
+- [x] Lock 상태가 표시된다.
 
 ---
 

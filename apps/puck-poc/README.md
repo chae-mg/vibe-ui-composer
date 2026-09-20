@@ -1,6 +1,6 @@
 # Puck PoC
 
-Phase 0~12 검증을 위한 Registry 기반 Puck Editor와 독립 Project Renderer 앱입니다.
+Phase 0~13 검증을 위한 Registry 기반 Puck Editor와 독립 Project Renderer 앱입니다.
 
 ## 검증 범위
 
@@ -48,6 +48,10 @@ Phase 0~12 검증을 위한 Registry 기반 Puck Editor와 독립 Project Render
 - Runtime Undo / Redo History와 Undo 후 Redo 분기 초기화
 - 선택 Node Duplicate / Delete와 중복 없는 Subtree ID 재생성
 - 선택 Node Lock / Unlock 상태의 Project JSON 저장 및 새로고침 복원
+- Project Node Tree Structure Panel과 Component 이름 표시
+- Tree Expand / Collapse와 Canvas ↔ Tree 선택 동기화
+- Tree Up / Down Reorder의 Canvas 및 Project JSON 반영
+- Structure Tree의 Lock 상태 표시와 잠긴 Node 이동 보호
 
 ## 실행
 
